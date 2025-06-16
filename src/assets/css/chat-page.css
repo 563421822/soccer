@@ -1,0 +1,176 @@
+.chat-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    height: 96px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    padding-top: 48px;
+}
+
+.chat-back {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #07c160;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.chat-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-content {
+    position: relative;
+    height: calc(100vh - 96px - 79px);
+    margin-top: 96px;
+    overflow-y: auto;
+    background: #f5f5f5;
+    width: 100vw;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+.chat-msg {
+    display: flex;
+    align-items: flex-start;
+    padding: 6px 8px; /* 缩小内边距 */
+    max-width: 60%; /* 缩小最大宽度 */
+}
+
+.chat-msg-left {
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.chat-msg-right {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    margin-left: auto; /* 让发送的消息真正靠右 */
+}
+
+.msg-avatar img {
+    width: 28px; /* 缩小头像 */
+    height: 28px;
+    border-radius: 8px;
+    background: #eee;
+}
+
+.msg-body {
+    margin-left: 4px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 4px 8px; /* 缩小内边距 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    flex: 1;
+    font-size: 14px; /* 缩小字体 */
+}
+
+.msg-body-self {
+    background: #dcf8c6;
+    margin-right: 5px;
+}
+
+.msg-username {
+    font-size: 12px; /* 缩小字体 */
+    color: #888;
+    margin-bottom: 1px;
+}
+
+.msg-text {
+    font-size: 14px; /* 缩小字体 */
+    color: #222;
+    margin-bottom: 1px;
+}
+
+.msg-time {
+    font-size: 11px; /* 缩小字体 */
+    color: #bbb;
+    text-align: right;
+}
+
+.chat-empty {
+    text-align: center;
+    color: #bbb;
+    padding: 72px 0;
+}
+
+.chat-load-more {
+    text-align: center;
+    color: #07c160;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+.chat-loading {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    padding: 24px 0;
+}
+
+.chat-input-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 64px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.03);
+    z-index: 20;
+    margin-bottom: 15px;
+}
+
+.chat-input {
+    flex: 1;
+    border: none;
+    font-size: 16px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f5f5f5;
+    margin-right: 8px;
+}
+
+.chat-input:focus {
+    outline: none;
+}
+
+.chat-send-btn {
+    background: #07c160;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.chat-send-btn:active {
+    background: #059c4b;
+}

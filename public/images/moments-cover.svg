@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景渐变 -->
+    <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#07c160;stop-opacity:1">
+                <animate attributeName="stop-color" values="#07c160;#4CAF50;#07c160" dur="5s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1">
+                <animate attributeName="stop-color" values="#4CAF50;#07c160;#4CAF50" dur="5s" repeatCount="indefinite"/>
+            </stop>
+        </linearGradient>
+    </defs>
+    <rect width="400" height="200" fill="url(#gradient)"/>
+    
+    <!-- 动态文字 -->
+    <text x="200" y="100" font-size="24" text-anchor="middle" fill="white" font-family="Arial">
+        朋友圈
+        <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+    </text>
+</svg> 

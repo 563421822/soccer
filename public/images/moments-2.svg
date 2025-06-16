@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景 -->
+    <rect width="200" height="200" fill="#f5f5f5"/>
+    
+    <!-- 动态评论图标 -->
+    <g transform="translate(50,50)">
+        <rect x="0" y="0" width="100" height="20" rx="10" fill="#4CAF50">
+            <animate attributeName="fill" values="#4CAF50;#07c160;#4CAF50" dur="3s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="0" y="40" width="80" height="20" rx="10" fill="#4CAF50">
+            <animate attributeName="fill" values="#4CAF50;#07c160;#4CAF50" dur="3s" repeatCount="indefinite" begin="1s"/>
+        </rect>
+        <rect x="0" y="80" width="60" height="20" rx="10" fill="#4CAF50">
+            <animate attributeName="fill" values="#4CAF50;#07c160;#4CAF50" dur="3s" repeatCount="indefinite" begin="2s"/>
+        </rect>
+    </g>
+    
+    <!-- 动态文字 -->
+    <text x="100" y="180" font-size="16" text-anchor="middle" fill="#333" font-family="Arial">
+        评论
+        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+    </text>
+</svg> 

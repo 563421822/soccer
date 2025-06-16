@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景 -->
+    <rect width="200" height="200" fill="#f5f5f5"/>
+    
+    <!-- 动态心形 -->
+    <path d="M100,50 C80,30 50,30 50,70 C50,100 100,150 100,150 C100,150 150,100 150,70 C150,30 120,30 100,50" 
+          fill="#ff6b6b">
+        <animate attributeName="fill" values="#ff6b6b;#ff8e8e;#ff6b6b" dur="2s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- 动态文字 -->
+    <text x="100" y="180" font-size="16" text-anchor="middle" fill="#333" font-family="Arial">
+        点赞
+        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+    </text>
+</svg> 

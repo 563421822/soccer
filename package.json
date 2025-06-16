@@ -1,0 +1,47 @@
+{
+  "name": "untitled2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@capacitor/android": "^7.3.0",
+    "@capacitor/cli": "^7.3.0",
+    "@capacitor/core": "^7.3.0",
+    "@capacitor/electron": "^2.5.0",
+    "axios": "^1.9.0",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",
+    "electron": "^36.4.0",
+    "electron-builder": "^26.0.12",
+    "rimraf": "^6.0.1",
+    "vite": "^6.2.4",
+    "vite-plugin-vue-devtools": "^7.7.2"
+  },
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "clean": "rimraf dist",
+    "electron": "electron .",
+    "electron:build": "electron-builder",
+    "build:android": "npm run clean && npm run build && npx cap copy android"
+  },
+  "build": {
+    "appId": "com.example.app",
+    "productName": "MyApp",
+    "directories": {
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

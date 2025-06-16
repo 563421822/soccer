@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景 -->
+    <rect width="200" height="200" fill="#f5f5f5"/>
+    
+    <!-- 动态分享图标 -->
+    <g transform="translate(100,100)">
+        <circle cx="0" cy="0" r="30" fill="#2196F3">
+            <animate attributeName="r" values="30;35;30" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <path d="M-20,-20 L20,20 M-20,20 L20,-20" stroke="white" stroke-width="4">
+            <animate attributeName="stroke-width" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+        </path>
+    </g>
+    
+    <!-- 动态文字 -->
+    <text x="100" y="180" font-size="16" text-anchor="middle" fill="#333" font-family="Arial">
+        分享
+        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+    </text>
+</svg> 
