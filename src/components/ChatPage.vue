@@ -7,9 +7,12 @@
     <div class="chat-content" ref="chatContentRef">
       <div v-if="loading" class="chat-loading">加载中...</div>
       <div v-else>
-        <div v-for="msg in messages" :key="msg.id" :class="['chat-msg', isSelf(msg) ? 'chat-msg-right'  : 'chat-msg-left']">
+        <div v-for="msg in messages" :key="msg.id"
+          :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
           <div class="msg-avatar">
-            <img :src="isSelf(msg)?(profileData?.avatar||'/images/avatar.svg'):(msg.user?.avatar||'/images/user.svg')" alt="头像"/>
+            <img
+              :src="isSelf(msg) ? (profileData?.avatar || '/images/avatar.svg') : (msg.user?.avatar || '/images/user.svg')"
+              alt="头像" />
           </div>
           <div :class="['msg-body', isSelf(msg) ? 'msg-body-self' : '']">
             <div class="msg-username">{{ isSelf(msg) ? profileData.username : msg.user.username }}</div>
@@ -21,7 +24,7 @@
       </div>
     </div>
     <div class="chat-input-bar">
-      <input v-model="inputText" class="chat-input" placeholder="输入消息..." @keyup.enter="sendMsg"/>
+      <input v-model="inputText" class="chat-input" placeholder="输入消息..." @keyup.enter="sendMsg" />
       <button class="chat-send-btn" @click="sendMsg">发送</button>
     </div>
     <div v-if="showToast" class="toast">{{ toastMsg }}</div>
@@ -29,15 +32,15 @@
 </template>
 
 <script setup>
-import {ref, onMounted, computed, nextTick, watch, onBeforeUnmount} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
+import { ref, onMounted, computed, nextTick, watch, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/config'
-import {useHomeStore} from '@/store/home'
-import {storeToRefs} from 'pinia'
-import {useErrorToast} from "@/utils/toast.js"
+import { useHomeStore } from '@/store/home'
+import { storeToRefs } from 'pinia'
+import { useErrorToast } from "@/utils/toast.js"
 
 const homeStore = useHomeStore()
-const {profileData} = storeToRefs(homeStore)
+const { profileData } = storeToRefs(homeStore)
 
 const route = useRoute()
 const router = useRouter()
@@ -50,7 +53,7 @@ const inputText = ref('')
 const chatType = computed(() => route.query.type)
 const chatId = computed(() => route.query.id)
 const chatTitle = computed(() => route.query.name || '聊天')
-const {showToast, toastMsg, showErrorToast} = useErrorToast()
+const { showToast, toastMsg, showErrorToast } = useErrorToast()
 
 function isSelf(msg) {
   if (!profileData.value) return false
@@ -103,31 +106,34 @@ const emit = defineEmits(['refreshMessageList'])
 
 function goBack() {
   const lastTab = sessionStorage.getItem('lastTab') || 'message'
-  router.replace({path: '/', query: {tab: lastTab}})
+  router.replace({ path: '/', query: { tab: lastTab } })
   emit('refreshMessageList')
 }
 
 function sendMsg() {
   if (!inputText.value.trim()) return
-  const msg = {
-    type: 'private',
-    user:{
+  let msg = {
+    type: chatType.value,
+    user: {
       id: profileData.value.id,
       username: profileData.value.username,
       avatar: profileData.value.avatar
     },
-    receiverId: chatId.value,
+    receiverId: chatType.value === 'private' ? chatId.value : undefined,
+    groupId: chatType.value === 'group' ? chatId.value : undefined,
+    groupChat: { name: chatTitle.value },
     username: chatTitle.value,
     content: inputText.value,
     sendTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
     id: 'local-' + Date.now()
   }
+
   if (window.$ws && window.$ws.readyState === 1) {
     window.$ws.send(JSON.stringify(msg))
     messages.value.push({
       id: msg.id,
       senderId: profileData.value.id,
-      user: {...profileData.value},
+      user: { ...profileData.value },
       content: msg.content,
       sendTime: msg.sendTime
     })
@@ -184,4 +190,3 @@ defineExpose({
 @import '@/assets/css/chat-page.css';
 @import '@/assets/css/common.css';
 </style>
-

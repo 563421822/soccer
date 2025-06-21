@@ -54,9 +54,6 @@
     flex-direction: column;
     justify-content: center;
     overflow: hidden;
-    padding-left: 0;
-}
-.private-info {
     padding-left: 12px;
 }
 

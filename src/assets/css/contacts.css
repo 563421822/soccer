@@ -105,3 +105,96 @@
     padding: 24px 0;
     font-size: 15px;
 }
+
+.create-group-btn {
+  float: right;
+  margin-left: 10px;
+  padding: 4px 10px;
+  font-size: 14px;
+  background: #409eff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.create-group-btn:hover {
+  background: #66b1ff;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.search-input {
+  flex: 1;
+}
+
+/* 创建群聊弹窗样式 */
+.modal-mask {
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-dialog {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 20px 16px 20px;
+  min-width: 320px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.modal-input {
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.modal-section-title {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+.modal-contact-list {
+  max-height: 160px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 8px;
+  background: #fafbfc;
+}
+.modal-contact-item {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.modal-actions button {
+  padding: 5px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.modal-actions button[disabled] {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.modal-actions button:not([disabled]) {
+  background: #409eff;
+  color: #fff;
+}

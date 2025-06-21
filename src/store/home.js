@@ -1,4 +1,4 @@
-import {defineStore} from 'pinia'
+import { defineStore } from 'pinia'
 import api from '@/api/config'
 
 export const useHomeStore = defineStore('home', {
@@ -33,18 +33,23 @@ export const useHomeStore = defineStore('home', {
         },
         incrementUnreadByMsg(msg, isActiveChatPage = false) {
             if (msg.type === 'group') {
-                let found = this.groupMessages.find(item => item.groupId === msg.to)
+                console.info("收到群聊消息", this.groupMessages)
+                let found = this.groupMessages.find(item => {
+                    return item.groupId === parseInt(msg.groupId)
+                })
                 if (found) {
+                    console.info("找到群聊消息，更新内容")
                     found.sendTime = msg.sendTime
                     found.content = msg.content
                     if (!isActiveChatPage) {
                         found.unreadCount = (found.unreadCount || 0) + 1
                     }
                 } else {
-                    // 新建会话项，简化处理
+                    console.info("未找到群聊消息，创建新消息")
+                    console.info(msg)
                     this.groupMessages.unshift({
-                        groupId: msg.to,
-                        groupChat: {name: msg.groupName || '群聊'},
+                        groupId: parseInt(msg.groupId),
+                        groupChat: { name: msg.groupChat.name},
                         content: msg.content,
                         sendTime: msg.sendTime,
                         unreadCount: isActiveChatPage ? 0 : 1,
@@ -63,7 +68,7 @@ export const useHomeStore = defineStore('home', {
                     found.content = msg.content
                 } else {
                     this.privateMessages.unshift({
-                        user: {id: parseInt(msg.receiverId), username: msg.username},
+                        user: { id: parseInt(msg.receiverId), username: msg.username },
                         receiverId: parseInt(msg.receiverId),
                         content: msg.content,
                         sendTime: msg.sendTime,
@@ -89,7 +94,6 @@ export const useHomeStore = defineStore('home', {
                 }
             } else if (type === 'private') {
                 let found = this.privateMessages.find(item => {
-                    // 用 user.id 匹配
                     return item.user && item.user.id == id
                 })
                 if (found && found.unreadCount) {
@@ -107,6 +111,28 @@ export const useHomeStore = defineStore('home', {
             this.contacts = []
             this.unreadCount = 0
             this.profileData = null
+        },
+        // 新增：创建群聊（带后端API）
+        async createGroup(name, memberIds) {
+            try {
+                const myId = this.profileData?.id
+                const res = await api.post('/group/create', {
+                    name,
+                    memberIds: myId ? [myId, ...memberIds] : memberIds
+                })
+                if (res.data && res.data.id) {
+                    this.groups.unshift(res.data)
+                } else {
+                    const newGroup = {
+                        id: Date.now() + Math.floor(Math.random() * 10000),
+                        name,
+                        memberIds: myId ? [myId, ...memberIds] : memberIds
+                    }
+                    this.groups.unshift(newGroup)
+                }
+            } catch (e) {
+                throw e
+            }
         }
     }
 })

@@ -27,7 +27,7 @@
     "build": "vite build",
     "clean": "rimraf dist",
     "electron": "electron .",
-    "electron:build": "electron-builder",
+    "electron:build": "npm run clean && npm run build && electron-builder",
     "build:android": "npm run clean && npm run build && npx cap copy android"
   },
   "build": {

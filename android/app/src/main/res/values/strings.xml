@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">untitled2</string>
-    <string name="title_activity_main">untitled2</string>
+    <string name="app_name">爱聊球</string>
+    <string name="title_activity_main">爱聊球</string>
     <string name="package_name">com.example.app</string>
     <string name="custom_url_scheme">com.example.app</string>
 </resources>
