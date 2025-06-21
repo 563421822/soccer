@@ -7,7 +7,7 @@
     <div class="profile-edit-content">
       <div class="edit-item">
         <span class="edit-label">头像</span>
-        <img :src="profileData?.avatar || '/images/avatar.svg'" class="edit-avatar" alt="头像"/>
+        <img :src="profileData?.avatar || './images/avatar.svg'" class="edit-avatar" alt="头像"/>
       </div>
       <div class="edit-item">
         <span class="edit-label">昵称</span>

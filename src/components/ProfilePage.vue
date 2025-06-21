@@ -3,7 +3,7 @@
     <div class="profile-header" @click="goEditProfile">
       <div class="profile-section">
         <div class="profile-avatar-wrap">
-          <img :src="profileData?.avatar || '/images/avatar.svg'" alt="头像" class="profile-avatar"/>
+          <img :src="profileData?.avatar || './images/avatar.svg'" alt="头像" class="profile-avatar"/>
         </div>
         <div class="profile-info-wrap">
           <div class="profile-name-row">
@@ -18,10 +18,10 @@
       </div>
     </div>
     <div class="profile-list">
-      <!-- <div class="profile-item"><img src="/images/icon-service.svg" class="item-icon" alt="服务">服务</div>
-      <div class="profile-item"><img src="/images/icon-favorite.svg" class="item-icon" alt="收藏">收藏</div>
-      <div class="profile-item"><img src="/images/icon-moments.svg" class="item-icon" alt="朋友圈">朋友圈</div>
-      <div class="profile-item"><img src="/images/icon-wallet.svg" class="item-icon" alt="卡包">卡包</div> -->
+      <!-- <div class="profile-item"><img src="./images/icon-service.svg" class="item-icon" alt="服务">服务</div>
+      <div class="profile-item"><img src="./images/icon-favorite.svg" class="item-icon" alt="收藏">收藏</div>
+      <div class="profile-item"><img src="./images/icon-moments.svg" class="item-icon" alt="朋友圈">朋友圈</div>
+      <div class="profile-item"><img src="./images/icon-wallet.svg" class="item-icon" alt="卡包">卡包</div> -->
       <div class="profile-item"><img src="/images/icon-settings.svg" class="item-icon" alt="设置">设置</div>
     </div>
   </div>

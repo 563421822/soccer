@@ -11,7 +11,7 @@
           :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
           <div class="msg-avatar">
             <img
-              :src="isSelf(msg) ? (profileData?.avatar || '/images/avatar.svg') : (msg.user?.avatar || '/images/user.svg')"
+              :src="isSelf(msg) ? (profileData?.avatar || './images/avatar.svg') : (msg.user?.avatar || './images/user.svg')"
               alt="头像" />
           </div>
           <div :class="['msg-body', isSelf(msg) ? 'msg-body-self' : '']">

@@ -1,6 +1,6 @@
 {
   "name": "untitled2",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -32,7 +32,7 @@
   },
   "build": {
     "appId": "com.example.app",
-    "productName": "MyApp",
+    "productName": "爱聊球",
     "directories": {
       "buildResources": "assets"
     },

@@ -9,9 +9,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         }
     });
-    const indexPath = path.join(__dirname, '../dist/index.html');
-    win.loadURL(`file://${indexPath}`);
-    win.webContents.openDevTools();
+    win.loadFile(path.join(__dirname, '../dist/index.html'));
 }
 
 app.whenReady().then(createWindow);

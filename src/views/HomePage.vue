@@ -60,10 +60,10 @@ const route = useRoute()
 const currentTab = ref('message')
 const loading = ref(true)
 const tabs = [
-  {key: 'message', icon: '/images/icon-moments.svg', text: '消息'},
-  {key: 'contacts', icon: '/images/icon-service.svg', text: '通讯录'},
-  // {key: 'discover', icon: '/images/icon-discover.svg', text: '发现'},
-  {key: 'profile', icon: '/images/icon-profile.svg', text: '我'}
+  {key: 'message', icon: './images/icon-moments.svg', text: '消息'},
+  {key: 'contacts', icon: './images/icon-service.svg', text: '通讯录'},
+  // {key: 'discover', icon: './images/icon-discover.svg', text: '发现'},
+  {key: 'profile', icon: './images/icon-profile.svg', text: '我'}
 ]
 
 const homeStore = useHomeStore()
