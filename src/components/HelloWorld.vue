@@ -11,9 +11,10 @@ defineProps({
   <div class="greetings">
     <h1 class="green">{{ msg }}</h1>
     <h3>
-      You’ve successfully created a project with
-      <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> +
-      <a href="https://vuejs.org/" target="_blank" rel="noopener">Vue 3</a>.
+      即刻开启您的球球之旅，适用于
+      <a href="https://developer.android.google.cn" target="_blank" rel="noopener">Android</a>、
+      <a href="https://www.apple.com/os/ios/" target="_blank" rel="noopener">iOS</a>和
+      <a href="https://www.microsoft.com/zh-cn/software-download/windows11" target="_blank" rel="noopener">Windows</a>平台。
     </h3>
   </div>
 </template>
