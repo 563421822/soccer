@@ -25,7 +25,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "clean": "rimraf dist",
+    "clean": "rimraf D:\\commu\\src\\main\\resources\\static\\dist",
     "electron": "electron .",
     "electron:build": "npm run clean && npm run build && electron-builder",
     "build:android": "npm run clean && npm run build && npx cap copy android"

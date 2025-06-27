@@ -14,5 +14,9 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  build: {
+    outDir: 'D:\\commu\\src\\main\\resources\\static\\dist',
+    emptyOutDir: true
   }
 })
