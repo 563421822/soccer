@@ -14,6 +14,7 @@ app.use(router).use(pinia).mount('#app')
 // WebSocket 逻辑
 let ws = null
 let wsInitialized = false
+let heartbeatTimer = null
 
 // 构造 WebSocket 地址
 const wsURL = baseURL.replace(/^http/, 'ws')
@@ -24,6 +25,15 @@ function setupWebSocket() {
   const homeStore = useHomeStore()
   ws = new WebSocket(wsURL + '/ws/chat?token=' + localStorage.getItem('token'))
   window.$ws = ws
+
+  // 启动心跳定时器，每3秒发送一次心跳
+  if (heartbeatTimer) clearInterval(heartbeatTimer)
+  heartbeatTimer = setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'ping' }))
+    }
+  }, 3000)
+
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data)
     msg.receiverId = msg.type === 'private' ? msg.user.id : msg.groupId
@@ -44,6 +54,10 @@ function setupWebSocket() {
 
   ws.onclose = function () {
     wsInitialized = false;
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer)
+      heartbeatTimer = null
+    }
     setTimeout(() => {
       if (!isAuthPage(router.currentRoute.value.path)) {
         setupWebSocket()
@@ -64,6 +78,10 @@ router.afterEach((to) => {
     ws.close();
     ws = null;
     wsInitialized = false;
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer)
+      heartbeatTimer = null
+    }
   }
 });
 

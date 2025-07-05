@@ -1,0 +1,70 @@
+<template>
+  <div class="feedback-page">
+    <h2>意见反馈</h2>
+    <div class="switch-row">
+      <label for="anon-switch">允许匿名反馈</label>
+      <input id="anon-switch" type="checkbox" v-model="anonymous" />
+    </div>
+    <textarea v-model="content" placeholder="请输入您的宝贵意见..." rows="5"></textarea>
+    <button class="submit-btn" @click="submitFeedback">提交反馈</button>
+    <div v-if="submitted" class="success-msg">感谢您的反馈！</div>
+  </div>
+</template>
+<script setup>
+import { ref } from 'vue'
+const anonymous = ref(false)
+const content = ref('')
+const submitted = ref(false)
+function submitFeedback() {
+  if (!content.value) return alert('请输入反馈内容')
+  // 这里可接入后端API
+  submitted.value = true
+  setTimeout(() => { submitted.value = false; content.value = '' }, 2000)
+}
+</script>
+<style scoped>
+.feedback-page {
+  padding: 24px;
+}
+h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+.switch-row label {
+  flex: 1;
+}
+.switch-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 16px;
+  resize: none;
+}
+.submit-btn {
+  width: 100%;
+  background: #409eff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.success-msg {
+  color: #52c41a;
+  text-align: center;
+  margin-top: 8px;
+}
+</style>

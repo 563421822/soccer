@@ -59,7 +59,7 @@ const handleLogin = async () => {
     }
   } catch (err) {
     const url = err.config?.baseURL + err.config?.url
-    showErrorToast(`登录失败（${err.response?.status || '未知错误'}），请稍后重试: ${err.message} ${url}`)
+    showErrorToast(`登录失败（${err.response?.status || '未知错误'}），${err.response.data}`)
   } finally {
     isLoading.value = false
   }

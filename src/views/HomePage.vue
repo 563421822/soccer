@@ -111,6 +111,8 @@ onMounted(async () => {
       if (messagePageRef.value) messagePageRef.value.restoreScroll()
     })
   } catch (e) {
+    console.log(e)
+    alert('初始化失败，请重新登录')
     localStorage.clear()
     homeStore.reset()
     await router.replace('/login')
