@@ -240,6 +240,7 @@ function goPage(path) {
 .profile-page {
   background: #f7f7fa;
   overflow-y: auto;
+  height: calc(100vh - 75px);
 }
 .profile-header {
   position: relative;
