@@ -1,9 +1,6 @@
 <template>
   <div class="contacts-page">
-    <div class="contacts-header">
-      <span class="header-title">联系人</span>
-      <span class="header-add" @click="showCreateGroupDialog = true">+</span>
-    </div>
+    <!-- header 由父组件统一渲染 -->
     <div class="contacts-search-bar">
       <span class="search-icon"></span>
       <input class="search-input" type="text" v-model="searchText" placeholder="搜索" />
@@ -37,26 +34,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 创建群聊弹窗 -->
-    <div v-if="showCreateGroupDialog" class="modal-mask">
-      <div class="modal-dialog">
-        <div class="modal-title">创建群聊</div>
-        <input class="modal-input" v-model="newGroupName" placeholder="请输入群聊名称" />
-        <div class="modal-section-title">选择群成员</div>
-        <div class="modal-contact-list">
-          <label v-for="item in contacts" :key="item.id" class="modal-contact-item">
-            <input type="checkbox" :value="item.id" v-model="selectedMemberIds" />
-            <span>{{ item.username }}</span>
-          </label>
-        </div>
-        <div class="modal-actions">
-          <button @click="onConfirmCreateGroup" :disabled="!canCreateGroup">创建</button>
-          <button @click="onCancelCreateGroup">取消</button>
-        </div>
-      </div>
-    </div>
-    <div v-if="showToast" class="toast">{{ toastMsg }}</div>
   </div>
 </template>
 <script setup>
@@ -69,9 +46,6 @@ import { useRouter } from "vue-router";
 const searchText = ref('')
 const homeStore = useHomeStore()
 const { groups, contacts } = storeToRefs(homeStore)
-import { useErrorToast } from '@/utils/toast.js'
-const { showToast, toastMsg, showErrorToast } = useErrorToast()
-
 
 const filteredGroups = computed(() => {
   return groups.value.filter(item => item.name.includes(searchText.value.trim()))
@@ -112,29 +86,6 @@ function restoreScroll() {
   }
 }
 
-// 创建群聊弹窗相关
-const showCreateGroupDialog = ref(false)
-const newGroupName = ref('')
-const selectedMemberIds = ref([])
-const canCreateGroup = computed(() => newGroupName.value.trim() && selectedMemberIds.value.length > 0)
-
-async function onConfirmCreateGroup() {
-  if (!canCreateGroup.value) return
-  try {
-    await homeStore.createGroup(newGroupName.value.trim(), selectedMemberIds.value)
-    showCreateGroupDialog.value = false
-    newGroupName.value = ''
-    selectedMemberIds.value = []
-  } catch (e) {
-    showErrorToast('创建群聊失败: ' + (e?.message || '网络错误'))
-  }
-}
-function onCancelCreateGroup() {
-  showCreateGroupDialog.value = false
-  newGroupName.value = ''
-  selectedMemberIds.value = []
-}
-
 defineExpose({ saveScroll, restoreScroll })
 </script>
 <style scoped>
@@ -148,7 +99,7 @@ defineExpose({ saveScroll, restoreScroll })
   position: relative;
   height: 48px;
   border-bottom: 1px solid #eee;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   background: #fff;
   display: flex;
@@ -156,7 +107,7 @@ defineExpose({ saveScroll, restoreScroll })
   justify-content: center;
 }
 .header-title {
-  font-size: 19px;
+  font-size: 16px;
   font-weight: bold;
   color: #222;
   position: absolute;
@@ -171,7 +122,7 @@ defineExpose({ saveScroll, restoreScroll })
 }
 .header-add {
   color: #267efb;
-  font-size: 28px;
+  font-size: 16px;
   font-weight: normal;
   cursor: pointer;
   width: 32px;
@@ -222,6 +173,7 @@ defineExpose({ saveScroll, restoreScroll })
   padding: 0 2px 6px 2px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
+  font-size: 16px;
 }
 .tab.active {
   color: #267efb;
@@ -242,7 +194,7 @@ defineExpose({ saveScroll, restoreScroll })
   align-items: center;
   padding: 12px 16px 10px 16px;
   border-bottom: 1px solid #f2f2f2;
-  font-size: 17px;
+  font-size: 16px;
   cursor: pointer;
   position: relative;
 }
@@ -263,10 +215,11 @@ defineExpose({ saveScroll, restoreScroll })
 .func-label {
   flex: 1;
   color: #222;
+  font-size: 16px;
 }
 .func-extra {
   color: #b2b2b2;
-  font-size: 14px;
+  font-size: 16px;
   margin-left: 8px;
 }
 .contacts-section {
@@ -275,7 +228,7 @@ defineExpose({ saveScroll, restoreScroll })
 .section-divider {
   background: #f5f5f7;
   color: #888;
-  font-size: 15px;
+  font-size: 16px;
   padding: 4px 16px;
   border-top: 1px solid #f2f2f2;
   border-bottom: 1px solid #f2f2f2;
@@ -287,6 +240,7 @@ defineExpose({ saveScroll, restoreScroll })
   border-bottom: 1px solid #f2f2f2;
   cursor: pointer;
   background: #fff;
+  font-size: 16px;
 }
 .contact-avatar {
   width: 44px;
@@ -296,7 +250,7 @@ defineExpose({ saveScroll, restoreScroll })
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 16px;
   color: #267efb;
   object-fit: cover;
   margin-right: 12px;
@@ -306,102 +260,20 @@ defineExpose({ saveScroll, restoreScroll })
   min-width: 0;
 }
 .contact-name {
-  font-size: 17px;
+  font-size: 16px;
   color: #222;
   font-weight: bold;
   margin-bottom: 2px;
 }
 .contact-status {
-  font-size: 15px;
+  font-size: 16px;
   color: #b2b2b2;
 }
 .empty-tip {
   text-align: center;
   color: #b2b2b2;
-  font-size: 15px;
+  font-size: 16px;
   margin: 18px 0 0 0;
 }
-/* 创建群聊弹窗样式 */
-.modal-mask {
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-dialog {
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px 20px 16px 20px;
-  min-width: 320px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-}
-
-.modal-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-.modal-input {
-  width: 100%;
-  padding: 6px 8px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.modal-section-title {
-  font-size: 15px;
-  margin-bottom: 8px;
-}
-
-.modal-contact-list {
-  max-height: 160px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  padding: 8px;
-  background: #fafbfc;
-}
-
-.modal-contact-item {
-  display: flex;
-  margin-bottom: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  gap: 6px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.modal-actions button {
-  padding: 5px 16px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.modal-actions button[disabled] {
-  background: #eee;
-  color: #aaa;
-  cursor: not-allowed;
-}
-
-.modal-actions button:not([disabled]) {
-  background: #409eff;
-  color: #fff;
-}
 </style>
+

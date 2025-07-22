@@ -12,8 +12,18 @@
       <div class="profile-id">{{ profileData?.usrSn || '账号' }}</div>
     </div>
     <transition name="slide-up">
-      <div v-if="showQr" class="qr-modal-mask" @click.self="showQr = false">
-        <div class="qr-modal">
+      <div
+        v-if="showQr"
+        class="qr-modal-mask"
+        @click.self="showQr = false"
+        @touchstart="onQrTouchStart"
+        @touchmove="onQrTouchMove"
+        @touchend="onQrTouchEnd"
+      >
+        <div
+          class="qr-modal"
+          :style="dragDeltaY ? `transform: translateY(${dragDeltaY}px)` : ''"
+        >
           <span class="qr-close" @click="showQr = false">×</span>
           <div class="qr-bg">
             <div class="qr-avatar-gradient">
@@ -79,7 +89,32 @@ import { useHomeStore } from '@/store/home'
 const homeStore = useHomeStore()
 const profileData = computed(() => homeStore.profileData)
 const router = useRouter()
+
 const showQr = ref(false)
+const dragStartY = ref(0)
+const dragDeltaY = ref(0)
+const dragging = ref(false)
+
+function onQrTouchStart(e) {
+  dragging.value = true
+  dragStartY.value = e.touches[0].clientY
+  dragDeltaY.value = 0
+}
+
+function onQrTouchMove(e) {
+  if (!dragging.value) return
+  dragDeltaY.value = e.touches[0].clientY - dragStartY.value
+  if (dragDeltaY.value < 0) dragDeltaY.value = 0
+}
+
+function onQrTouchEnd() {
+  if (!dragging.value) return
+  if (dragDeltaY.value > 50) {
+    showQr.value = false
+  }
+  dragDeltaY.value = 0
+  dragging.value = false
+}
 
 function goEditProfile() {
   router.push('/profile-edit')
@@ -92,7 +127,7 @@ function goPage(path) {
 .profile-qricon {
   position: absolute;
   left: 18px;
-  top: 18px;
+  top: 42px;
   width: 28px;
   height: 28px;
   background: url('/images/icon-scan.svg') no-repeat center/22px 22px, #eaeaea;
@@ -164,7 +199,7 @@ function goPage(path) {
   align-items: center;
 }
 .qr-username {
-  font-size: 22px;
+  font-size: 16px; /* 统一为16px */
   color: #222;
   font-weight: bold;
   margin-top: 18px;
@@ -178,7 +213,7 @@ function goPage(path) {
   color: #fff;
   border: none;
   border-radius: 12px;
-  font-size: 20px;
+  font-size: 16px; /* 统一为16px */
   font-weight: 500;
   padding: 14px 0;
   text-align: center;
@@ -212,14 +247,14 @@ function goPage(path) {
   flex-direction: column;
   align-items: center;
   background: #f7f7fa;
-  padding: 32px 0 18px 0;
+  padding: 60px 0 18px 0;
 }
 .profile-edit {
   position: absolute;
   right: 18px;
-  top: 18px;
-  color: #267efb;
-  font-size: 17px;
+  top: 42px;
+  color: #27c24c;
+  font-size: 16px; /* 统一为16px */
   cursor: pointer;
   z-index: 2;
 }
@@ -251,7 +286,7 @@ function goPage(path) {
   text-align: center;
 }
 .profile-id {
-  font-size: 18px;
+  font-size: 16px; /* 统一为16px */
   color: #888;
   margin-bottom: 18px;
   text-align: center;
@@ -272,7 +307,7 @@ function goPage(path) {
   align-items: center;
   padding: 0 18px;
   height: 54px;
-  font-size: 18px;
+  font-size: 16px; /* 统一为16px */
   color: #222;
   border-bottom: 1px solid #f2f2f2;
   cursor: pointer;

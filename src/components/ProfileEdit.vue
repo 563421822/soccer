@@ -69,10 +69,10 @@ function logout() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 18px;
+  padding: 42px 18px 18px;
   height: 48px;
   background: #f6f6fa;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   position: relative;
 }

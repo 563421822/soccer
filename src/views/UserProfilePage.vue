@@ -35,8 +35,18 @@
     </div>
     <div class="profile-info">
     <transition name="slide-up">
-      <div v-if="showQr" class="qr-modal-mask" @click.self="showQr = false">
-        <div class="qr-modal">
+      <div
+        v-if="showQr"
+        class="qr-modal-mask"
+        @click.self="showQr = false"
+        @touchstart="onQrTouchStart"
+        @touchmove="onQrTouchMove"
+        @touchend="onQrTouchEnd"
+      >
+        <div
+          class="qr-modal"
+          :style="dragDeltaY ? `transform: translateY(${dragDeltaY}px)` : ''"
+        >
           <span class="qr-close" @click="showQr = false">×</span>
           <div class="qr-bg">
             <div class="qr-avatar-gradient">
@@ -75,6 +85,30 @@ const userId = route.query.userId || '未知ID'
 const bio = route.query.bio || '暂无简介'
 const onlineStatus = route.query.onlineStatus || '4分钟前在线'
 const showQr = ref(false)
+const dragStartY = ref(0)
+const dragDeltaY = ref(0)
+const dragging = ref(false)
+
+function onQrTouchStart(e) {
+  dragging.value = true
+  dragStartY.value = e.touches[0].clientY
+  dragDeltaY.value = 0
+}
+
+function onQrTouchMove(e) {
+  if (!dragging.value) return
+  dragDeltaY.value = e.touches[0].clientY - dragStartY.value
+  if (dragDeltaY.value < 0) dragDeltaY.value = 0
+}
+
+function onQrTouchEnd() {
+  if (!dragging.value) return
+  if (dragDeltaY.value > 50) {
+    showQr.value = false
+  }
+  dragDeltaY.value = 0
+  dragging.value = false
+}
 function goBack() {
   router.back()
 }
@@ -214,7 +248,7 @@ function editProfile() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 42px 16px 12px;
   background: #fff;
   border-bottom: 1px solid #eee;
 }
