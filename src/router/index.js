@@ -34,6 +34,7 @@ const routes = [
     { path: '/switch-line', component: SwitchLinePage },
     { path: '/feedback', component: FeedbackPage },
     { path: '/update', component: UpdatePage },
+    { path: '/user-profile', component: () => import('@/views/UserProfilePage.vue') },
 ]
 
 const router = createRouter({
