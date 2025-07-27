@@ -451,7 +451,7 @@ function goToUserProfile() {
   color: #27c16e;
   font-size: 16px;
   text-align: left;
-  padding-left: 24px;
+  padding-left: 15px;
   cursor: pointer;
   font-weight: 400;
 }
@@ -484,7 +484,7 @@ function goToUserProfile() {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 24px;
+  padding-right: 15px;
   min-width: 38px;
   height: 38px;
 }
