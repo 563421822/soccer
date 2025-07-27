@@ -36,6 +36,7 @@ function setupWebSocket() {
 
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data)
+    console.log('收到新消息:', msg)
     msg.receiverId = msg.type === 'private' ? msg.user.id : msg.groupId
     // 正确获取当前路由
     const route = router.currentRoute.value

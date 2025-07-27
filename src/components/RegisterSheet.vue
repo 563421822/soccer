@@ -29,13 +29,23 @@
           <label>确认密码 <span class="tip">?</span></label>
           <input v-model="confirmPassword" type="password" placeholder="8-20位字母、数字或符号组合" />
         </div>
-        <button class="register-btn" type="submit">注册</button>
+        <button class="register-btn" type="submit" :disabled="isLoading">
+          <span v-if="isLoading">注册中...</span>
+          <span v-else>注册</span>
+        </button>
       </form>
+      <div v-if="showToast" class="toast">{{ toastMsg }}</div>
     </div>
   </div>
 </template>
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useErrorToast } from '@/utils/toast'
+import api from '@/api/config'
+import { useRouter } from 'vue-router'
+
+const { showToast, toastMsg, showErrorToast } = useErrorToast()
+const router = useRouter()
 const props = defineProps({ show: Boolean })
 const emit = defineEmits(['close'])
 const inviteCode = ref('')
@@ -43,6 +53,7 @@ const username = ref('')
 const nickname = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const isLoading = ref(false)
 
 let startY = 0
 let deltaY = 0
@@ -50,9 +61,47 @@ let dragging = false
 const sheetRef = ref()
 
 function close() { emit('close') }
-function submit() {
+async function submit() {
+  if (isLoading.value) return
   // 可补充注册逻辑
-  close()
+  if (![username.value, password.value, confirmPassword.value, inviteCode.value].every(Boolean)) {
+    showErrorToast('请填写所有必填项')
+    return
+  }
+  if (!/^[a-zA-Z0-9]+$/.test(username.value)) {
+    showErrorToast('账号只能包含字母和数字')
+    return
+  }
+  if (username.value.length < 5) {
+    showErrorToast('账号至少5位')
+    return
+  }
+  if (password.value.length < 8) {
+    showErrorToast('密码至少8位')
+    return
+  }
+  if (password.value !== confirmPassword.value) {
+    showErrorToast('两次输入的密码不一致')
+    return
+  }
+  try {
+    // 这里可以添加邀请码校验逻辑，如果需要
+    const response = await api.post('/register', {
+      usrSn: username.value,
+      password: password.value,
+      username: nickname.value,
+      inviteCodeUsed: inviteCode.value
+    })
+    showErrorToast('注册成功')
+    localStorage.setItem('token', response.data.token)
+    setTimeout(() => {
+      router.replace('/')
+    }, 2000)
+  } catch (err) {
+    showErrorToast(`注册失败（${err.response?.status || '未知错误'}），${err.response.data}`)
+  } finally {
+    isLoading.value = false
+  }
 }
 function onTouchStart(e) {
   if (e.touches.length === 1) {
@@ -99,39 +148,52 @@ onBeforeUnmount(() => {
 <style scoped>
 .register-sheet-mask {
   position: fixed;
-  left: 0; right: 0; top: 0; bottom: 0;
-  background: rgba(0,0,0,0.18);
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.18);
   z-index: 9999;
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
+
 .register-sheet {
   width: 100%;
   max-width: 480px;
   background: #f7f7f7;
   border-top-left-radius: 28px;
   border-top-right-radius: 28px;
-  box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
   padding: 32px 24px 24px 24px;
   margin-top: 48px;
-  animation: slide-up 0.35s cubic-bezier(.4,0,.2,1);
+  animation: slide-up 0.35s cubic-bezier(.4, 0, .2, 1);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
 }
+
 @keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
+
 .register-header {
   margin-bottom: 24px;
 }
+
 .back-row {
   width: 100%;
   display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
+
 .back {
   color: #27c16e;
   font-size: 16px;
@@ -140,6 +202,7 @@ onBeforeUnmount(() => {
   background: transparent;
   z-index: 2;
 }
+
 .title {
   font-size: 28px;
   font-weight: bold;
@@ -148,6 +211,7 @@ onBeforeUnmount(() => {
   text-align: center;
   margin-left: 0;
 }
+
 .subtitle {
   font-size: 16px;
   color: #888;
@@ -155,17 +219,20 @@ onBeforeUnmount(() => {
   text-align: center;
   margin-left: 0;
 }
+
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
+
 .form-group label {
   font-size: 16px;
   color: #222;
   margin-bottom: 4px;
   display: block;
 }
+
 .form-group input {
   width: 100%;
   height: 44px;
@@ -177,11 +244,13 @@ onBeforeUnmount(() => {
   margin-top: 4px;
   box-sizing: border-box;
 }
+
 .tip {
   color: #bbb;
   font-size: 14px;
   margin-left: 4px;
 }
+
 .register-btn {
   width: 100%;
   height: 48px;
@@ -192,5 +261,24 @@ onBeforeUnmount(() => {
   font-size: 18px;
   font-weight: 500;
   margin-top: 18px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 120px;
+  max-width: 80vw;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px 24px;
+  text-align: center;
+  font-size: 16px;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  animation: toast-fade-in 0.2s;
 }
 </style>

@@ -35,6 +35,7 @@ const routes = [
     { path: '/feedback', component: FeedbackPage },
     { path: '/update', component: UpdatePage },
     { path: '/user-profile', component: () => import('@/views/UserProfilePage.vue') },
+    { path: '/user-edit', component: () => import('@/views/UserProfileEditPage.vue') },
 ]
 
 const router = createRouter({

@@ -2,7 +2,7 @@
   <div class="user-profile-page">
     <div class="profile-header">
       <span class="back-btn" @click="goBack">&lt; 返回</span>
-      <span class="edit-btn" @click="editProfile">编辑</span>
+      <span class="edit-btn" @click="moreOper">更多</span>
     </div>
     <div class="profile-avatar">
       <img :src="avatar" alt="头像" />
@@ -11,7 +11,7 @@
       <span class="profile-name">{{ username }}</span>
     </div>
     <div class="profile-status">{{ onlineStatus }}</div>
-    <div class="profile-actions">
+    <!-- <div class="profile-actions">
       <button class="action-btn">
         <span class="icon icon-phone"></span>
         <span class="btn-label">语音通话</span>
@@ -32,7 +32,7 @@
         <span class="icon icon-more"></span>
         <span class="btn-label">更多</span>
       </button>
-    </div>
+    </div> -->
     <div class="profile-info">
     <transition name="slide-up">
       <div
@@ -53,11 +53,11 @@
               <span class="qr-avatar-text">{{ username.charAt(0).toUpperCase() }}</span>
             </div>
             <div class="qr-card">
-              <qrcode-vue :value="userId || 'wangyl'" :size="220" :level="'M'" :margin="2" :foreground="'#267efb'" />
-              <div class="qr-username">{{ userId || 'wangyl' }}</div>
+              <qrcode-vue :value="userId || 'user'" :size="220" :level="'M'" :margin="2" :foreground="'#267efb'" />
+              <div class="qr-username">{{ userId || 'user' }}</div>
             </div>
           </div>
-          <button class="qr-share-btn">分享</button>
+          <button class="qr-share-btn" @click="showQr = false">完成</button>
         </div>
       </div>
     </transition>
@@ -79,11 +79,12 @@ import QrcodeVue from 'qrcode.vue'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
-const avatar = route.query.avatar || './images/avatar.svg'
-const username = route.query.username || '用户昵称'
+// 渲染对方数据（优先使用 route.query 里的数据）
+const avatar = route.query.avatar || '/images/user.svg'
+const username = route.query.username || '对方昵称'
 const userId = route.query.userId || '未知ID'
 const bio = route.query.bio || '暂无简介'
-const onlineStatus = route.query.onlineStatus || '4分钟前在线'
+const onlineStatus = route.query.onlineStatus || '当前在线'
 const showQr = ref(false)
 const dragStartY = ref(0)
 const dragDeltaY = ref(0)
@@ -112,8 +113,12 @@ function onQrTouchEnd() {
 function goBack() {
   router.back()
 }
-function editProfile() {
-  // 可跳转到编辑页
+function moreOper() {
+  // 跳转到编辑页时也传递对方数据
+  router.push({
+    path: '/user-edit',
+    query: { avatar, username, userId, bio, onlineStatus }
+  });
 }
 </script>
 
@@ -254,7 +259,7 @@ function editProfile() {
 }
 .back-btn, .edit-btn {
   color: #27c16e;
-  font-size: 17px;
+  font-size: 16px;
   cursor: pointer;
 }
 .profile-avatar {

@@ -1,79 +1,68 @@
 <template>
   <div class="chat-page">
-    <div class="chat-header">
-      <span class="chat-back" @click="goBack">&lt; 返回</span>
-      <div class="chat-header-info">
-        <span class="chat-title">{{ chatTitle }}</span>
-        <span class="chat-status">当前在线</span>
+    <!-- 顶部导航栏 -->
+    <div class="fixed-header">
+      <span class="header-left" @click="goBack" aria-label="返回">&lt;&nbsp;返回</span>
+      <div class="header-center">
+        <div class="header-title">{{ chatTitle }}</div>
+        <div class="header-status">{{ chatType === 'group' ? '群聊' : '当前在线' }}</div>
       </div>
-      <img :src="chatAvatar" class="chat-avatar" alt="头像" @click="goToUserProfile" />
+      <span class="header-right">
+        <img v-if="chatType === 'private'" :src="chatAvatar" class="chat-avatar" alt="用户头像" @click="goToUserProfile" />
+      </span>
     </div>
+    <!-- 消息内容区 -->
     <div class="chat-content" ref="chatContentRef"
-      :style="{ height: showToolBar ? `calc(114vh - 72px - 300px)` : `calc(100vh - 72px - 58px)`, transition: 'height 0.2s' }">
+      :style="{ height: showToolBar ? 'calc(100vh - 259px)' : 'calc(100vh - 164px)' }">
       <div class="chat-bg"></div>
       <div v-if="loading" class="chat-loading">加载中...</div>
-      <div v-else>
-        <div class="chat-date">今天</div>
+      <template v-else>
+        <div class="chat-tip">您已添加了 {{ chatTitle }}，现在可以开始聊天了</div>
         <div class="chat-divider">- 以下是未读消息 -</div>
+        <div class="chat-date">今天</div>
+        <!-- 消息列表（建议拆分为 ChatMessageList 组件） -->
         <div v-for="msg in messages" :key="msg.id"
-          :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']"
-          @mousedown="onMsgMouseDown(msg, $event)" @mouseup="onMsgMouseUp(msg, $event)"
-          @mouseleave="onMsgMouseUp(msg, $event)" @touchstart="onMsgTouchStart(msg, $event)"
-          @touchend="onMsgTouchEnd(msg, $event)">
-          <div class="msg-avatar">
-            <img
-              :src="isSelf(msg) ? (profileData?.avatar || '/images/avatar.svg') : (msg.user?.avatar || '/images/user.svg')"
-              alt="头像" />
-          </div>
-          <div :class="['msg-body', isSelf(msg) ? 'msg-body-self' : '']" ref="msgBodyRefs" :data-msg-id="msg.id">
-            <transition name="revoke-slide">
-              <div v-if="showRevokeMenu && revokeMsg && revokeMsg.id === msg.id" class="revoke-popup">
-                <div class="revoke-btn" @click="revokeMessage(msg)">撤回</div>
-              </div>
-            </transition>
-            <div class="msg-text">
-              <template v-if="msg.msgType === 'image'">
-                <img :src="msg.content" alt="图片消息" />
-              </template>
-              <template v-else>
-                {{ msg.content }}
-              </template>
-            </div>
+          :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
+          <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
+            <template v-if="msg.msgType === 'image'">
+              <img :src="msg.content" alt="图片消息" class="msg-img" />
+            </template>
+            <template v-else>
+              <span class="msg-text">{{ msg.content }}</span>
+            </template>
             <div class="msg-time">{{ msg.sendTime }}</div>
           </div>
         </div>
         <div v-if="!messages.length" class="chat-empty">暂无聊天记录</div>
-        <div class="chat-tip">您已添加了 {{ chatTitle }}，现在可以开始聊天了</div>
+        <!-- 上传中图片预览 -->
         <UploadingImage v-for="img in pendingImages" :key="img.id" :previewUrl="img.url" :finalUrl="img.finalUrl"
           :avatar="profileData?.avatar || '/images/avatar.svg'" :time="img.time" :progress="img.progress"
           :done="img.done" />
-      </div>
+      </template>
     </div>
+    <!-- 输入区（建议拆分为 ChatInputBar 组件） -->
     <div class="chat-bottom-area" :class="{ expanded: showToolBar }">
       <transition name="tool-bar-push">
         <div v-if="showToolBar" class="chat-tool-bar">
-          <div class="tool-item" @click="onSelectImage"><span class="icon-img"></span>相册</div>
+          <div class="tool-item" @click="onSelectImage"><span class="icon-album"></span>相册</div>
           <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="onImageChange" />
           <div class="tool-item" @click="onTakePhoto"><span class="icon-camera"></span>拍摄</div>
-          <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none"
-            @change="onCameraChange" />
+          <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none" @change="onCameraChange" />
         </div>
       </transition>
       <div class="chat-input-bar">
-        <button class="chat-plus" @click="toggleToolBar">
+        <button class="chat-plus" @click="toggleToolBar" aria-label="更多功能">
           <span v-if="!showToolBar">＋</span>
           <span v-else style="display:inline-block;transform:rotate(45deg);font-size:28px;">＋</span>
         </button>
-        <input v-model="inputText" class="chat-input" placeholder="输入消息..." @keyup.enter="sendMsg" />
-        <button class="chat-send-btn" @click="sendMsg">发送</button>
+        <input v-model="inputText" class="chat-input" placeholder="输入消息..." @keyup.enter="sendMsg" aria-label="输入消息" />
+        <button class="chat-send-btn" @click="sendMsg" aria-label="发送消息">发送</button>
       </div>
     </div>
+    <!-- Toast提示 -->
     <div v-if="showToast" class="toast">{{ toastMsg }}</div>
-    <!-- 在消息区下方展示拍摄图片预览 -->
+    <!-- 拍摄图片预览 -->
     <div v-if="cameraPreviewUrl" class="chat-msg chat-msg-right">
-      <div class="msg-avatar">
-        <img :src="profileData?.avatar || '/images/avatar.svg'" alt="头像" />
-      </div>
       <div class="msg-body msg-body-self">
         <div class="msg-text">
           <img :src="cameraPreviewUrl" alt="拍摄图片" />
@@ -82,6 +71,7 @@
         <div class="msg-time">{{ cameraPreviewTime }}</div>
       </div>
     </div>
+    <!-- 上传进度遮罩 -->
     <div v-if="showUploadOverlay" class="upload-overlay">
       <div class="upload-progress">
         <div class="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
@@ -92,19 +82,6 @@
 </template>
 
 <script setup>
-function goToUserProfile() {
-  // 头像信息优先取 profileData
-  const avatar = profileData.value?.avatar || './images/avatar.svg';
-  const username = profileData.value?.username || chatTitle.value;
-  const userId = profileData.value?.id || '';
-  const bio = profileData.value?.bio || '';
-  // 可根据实际业务调整 onlineStatus
-  const onlineStatus = '4分钟前在线';
-  router.push({
-    path: '/user-profile',
-    query: { avatar, username, userId, bio, onlineStatus }
-  });
-}
 import { ref, onMounted, computed, nextTick, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/config'
@@ -114,7 +91,7 @@ import { useErrorToast } from "@/utils/toast.js"
 import UploadingImage from '@/components/UploadingImage.vue'
 
 const homeStore = useHomeStore()
-const { profileData } = storeToRefs(homeStore)
+const { profileData, contacts } = storeToRefs(homeStore)
 
 const route = useRoute()
 const router = useRouter()
@@ -137,11 +114,21 @@ const showUploadOverlay = ref(false)
 const uploadProgress = ref(0)
 const pendingImages = ref([])
 
+const chatAvatar = computed(() => {
+  if (chatType.value === 'private') {
+    const item = contacts.value.find(
+      m => String(m.id) === String(chatId.value)
+    )
+    return item?.avatar || '/images/user.svg'
+  }
+  return '/images/avatar.svg'
+})
+
 function isSelf(msg) {
-  if (!profileData.value) return false
-  return msg.senderId === profileData.value.id
+  return profileData.value && msg.senderId === profileData.value.id
 }
 
+// 优化：批量拉取消息，滚动只在最后一次触发
 async function fetchMessages(pageNum = 1) {
   loading.value = true
   const res = await api.get('/message/records', {
@@ -149,40 +136,32 @@ async function fetchMessages(pageNum = 1) {
       type: chatType.value,
       identity: chatId.value,
       pageNum,
-      pageSize: pageSize
+      pageSize
     }
   })
-  let list = res.data?.list || []
   loading.value = false
-  return list
+  return res.data?.list || []
 }
 
-watch(
-  [chatType, chatId],
-  async ([newType, newId]) => {
-    if (newType && newId) {
-      messages.value = []
-      loading.value = true
-      let pageNum = 1
-      let totalList = []
-      while (true) {
-        const list = await fetchMessages(pageNum)
-        if (!list.length) break
-        totalList = totalList.concat(list)
-        if (list.length < pageSize) break
-        pageNum++
-      }
-      messages.value = totalList
-      loading.value = false
-      nextTick(() => {
-        if (chatContentRef.value) {
-          chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight
-        }
-      })
+// 优化：watch 只在 chatType/chatId 变化时拉取消息
+watch([chatType, chatId], async ([newType, newId]) => {
+  if (newType && newId) {
+    messages.value = []
+    loading.value = true
+    let pageNum = 1
+    let totalList = []
+    while (true) {
+      const list = await fetchMessages(pageNum)
+      if (!list.length) break
+      totalList = totalList.concat(list)
+      if (list.length < pageSize) break
+      pageNum++
     }
-  },
-  { immediate: true }
-)
+    messages.value = totalList
+    loading.value = false
+    scrollToBottom()
+  }
+}, { immediate: true })
 
 const emit = defineEmits(['refreshMessageList'])
 
@@ -192,24 +171,29 @@ function goBack() {
   emit('refreshMessageList')
 }
 
+// 优化：滚动到底部
+function scrollToBottom() {
+  nextTick(() => {
+    chatContentRef.value && (chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight)
+  })
+}
+
 function sendMsg() {
   if (!inputText.value.trim()) return
-  let msg = {
+  const msg = {
     type: chatType.value,
     user: {
       id: profileData.value.id,
       username: profileData.value.username,
       avatar: profileData.value.avatar
     },
-    receiverId: chatType.value === 'private' ? chatId.value : undefined,
-    groupId: chatType.value === 'group' ? chatId.value : undefined,
-    groupChat: { name: chatTitle.value },
-    username: chatTitle.value,
+    ...(chatType.value === 'private' ? { receiverId: chatId.value } : {}),
+    ...(chatType.value === 'group' ? { groupChat: { name: chatTitle.value, groupId: chatId.value } } : {}),
     content: inputText.value,
     sendTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
     id: 'local-' + Date.now()
   }
-
+  console.info(msg.user)
   if (window.$ws && window.$ws.readyState === 1) {
     window.$ws.send(JSON.stringify(msg))
     messages.value.push({
@@ -224,36 +208,20 @@ function sendMsg() {
     showErrorToast("消息通道未连接")
   }
   inputText.value = ''
-  nextTick(() => {
-    if (chatContentRef.value) {
-      chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight
-    }
-  })
+  scrollToBottom()
 }
 
 function appendMessage(msg) {
   messages.value.push(msg)
-  nextTick(() => {
-    if (chatContentRef.value) {
-      chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight
-    }
-  })
+  scrollToBottom()
 }
 
 function onResize() {
-  nextTick(() => {
-    if (chatContentRef.value) {
-      chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight
-    }
-  })
+  scrollToBottom()
 }
 
 onMounted(() => {
-  nextTick(() => {
-    if (chatContentRef.value) {
-      chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight
-    }
-  })
+  scrollToBottom()
   window.addEventListener('resize', onResize)
   window.$chatPageRef = { appendMessage }
 })
@@ -263,40 +231,27 @@ onBeforeUnmount(() => {
   window.$chatPageRef = null
 })
 
-defineExpose({
-  appendMessage
-})
+defineExpose({ appendMessage })
 
 function toggleToolBar() {
   showToolBar.value = !showToolBar.value
 }
 
 function onSelectImage() {
-  if (fileInputRef.value) {
-    fileInputRef.value.value = '' // 清空上次选择
-    fileInputRef.value.click()
-  }
+  fileInputRef.value && (fileInputRef.value.value = '', fileInputRef.value.click())
 }
 
 function onTakePhoto() {
-  if (cameraInputRef.value) {
-    cameraInputRef.value.value = ''
-    cameraInputRef.value.click()
-  }
+  cameraInputRef.value && (cameraInputRef.value.value = '', cameraInputRef.value.click())
 }
 
+// 优化：图片上传逻辑抽取
 async function onImageChange(e) {
   const file = e.target.files && e.target.files[0]
   if (!file) return
-  if (!file.type.startsWith('image/')) {
-    showErrorToast('请选择图片文件')
-    return
-  }
-
   const localUrl = URL.createObjectURL(file)
   const tempId = 'pending-' + Date.now()
   const now = new Date().toISOString().replace('T', ' ').substring(0, 16)
-
   pendingImages.value.push({
     id: tempId,
     url: localUrl,
@@ -305,18 +260,14 @@ async function onImageChange(e) {
     done: false,
     finalUrl: ''
   })
-
-
-  // 模拟进度
   let progress = 0
   const timer = setInterval(() => {
     if (progress < 95) {
       progress += Math.floor(Math.random() * 5) + 1
       const item = pendingImages.value.find(p => p.id === tempId)
-      if (item) item.progress = Math.min(progress, 95)
+      item && (item.progress = Math.min(progress, 95))
     }
   }, 100)
-
   const formData = new FormData()
   formData.append('file', file)
   let imageUrl = ''
@@ -332,7 +283,6 @@ async function onImageChange(e) {
     pendingImages.value = pendingImages.value.filter(p => p.id !== tempId)
     return
   }
-
   clearInterval(timer)
   const item = pendingImages.value.find(p => p.id === tempId)
   if (item) {
@@ -340,19 +290,12 @@ async function onImageChange(e) {
     item.done = true
     item.finalUrl = imageUrl
   }
-
-  // ✅ 保留展示动画 500ms 再移除（可以调整时间）
-  setTimeout(() => {
-    pendingImages.value = pendingImages.value.filter(p => p.id !== tempId)
-  }, 500)
-
-  // 发送图片消息
   sendImageMsg(imageUrl)
 }
 
-
+// 优化：图片消息发送逻辑
 function sendImageMsg(imageUrl) {
-  let msg = {
+  const msg = {
     type: chatType.value,
     user: {
       id: profileData.value.id,
@@ -382,48 +325,7 @@ function sendImageMsg(imageUrl) {
   } else {
     showErrorToast("消息通道未连接")
   }
-  nextTick(() => {
-    if (chatContentRef.value) {
-      chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight
-    }
-  })
-}
-
-const showRevokeMenu = ref(false)
-const revokeMsg = ref(null)
-let msgPressTimer = null
-
-function onMsgMouseDown(msg, e) {
-  if (!isSelf(msg)) return
-  msgPressTimer = setTimeout(() => {
-    showRevokePopup(msg)
-  }, 500)
-}
-function onMsgMouseUp(msg, e) {
-  clearTimeout(msgPressTimer)
-}
-function onMsgTouchStart(msg, e) {
-  if (!isSelf(msg)) return
-  msgPressTimer = setTimeout(() => {
-    showRevokePopup(msg)
-  }, 500)
-}
-function onMsgTouchEnd(msg, e) {
-  clearTimeout(msgPressTimer)
-}
-function showRevokePopup(msg) {
-  revokeMsg.value = msg
-  showRevokeMenu.value = true
-  document.addEventListener('click', hideRevokeMenu, { once: true })
-}
-function hideRevokeMenu() {
-  showRevokeMenu.value = false
-  revokeMsg.value = null
-}
-function revokeMessage(msg) {
-  const idx = messages.value.findIndex(m => m.id === msg.id)
-  if (idx !== -1) messages.value.splice(idx, 1)
-  hideRevokeMenu()
+  scrollToBottom()
 }
 
 function onCameraChange(e) {
@@ -435,6 +337,25 @@ function onCameraChange(e) {
   }
   cameraPreviewUrl.value = URL.createObjectURL(file)
   cameraPreviewTime.value = new Date().toISOString().replace('T', ' ').substring(0, 16)
+}
+
+function goToUserProfile() {
+  let targetUser = null
+  if (chatType.value === 'private') {
+    const item = contacts.value.find(
+      m => String(m.id) === String(chatId.value)
+    )
+    targetUser = item
+  }
+  const avatar = targetUser?.avatar
+  const username = targetUser?.username || chatTitle.value
+  const userId = targetUser?.usrSn || ''
+  const bio = targetUser?.bio || ''
+  const onlineStatus = '当前在线'
+  router.push({
+    path: '/user-profile',
+    query: { avatar, username, userId, bio, onlineStatus }
+  })
 }
 </script>
 
@@ -457,30 +378,33 @@ function onCameraChange(e) {
   z-index: 0;
 }
 
-.chat-header {
-  display: flex;
-  align-items: center;
-  padding: 42px 16px 12px;
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  position: relative;
-  z-index: 2;
-}
-
 .chat-back {
   color: #27c16e;
   font-size: 17px;
   font-weight: bold;
   cursor: pointer;
   margin-right: 8px;
+  z-index: 2;
 }
 
 .chat-header-info {
-  flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  height: 100%;
+}
+
+.chat-title,
+.chat-status {
+  pointer-events: auto;
 }
 
 .chat-title {
@@ -493,24 +417,219 @@ function onCameraChange(e) {
 .chat-status {
   font-size: 15px;
   color: #27c16e;
-  font-weight: 500;
+  margin-top: 2px;
+  font-weight: 400;
 }
 
 .chat-avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  margin-left: 8px;
+  margin-left: auto;
   object-fit: cover;
   border: 2px solid #eafaf1;
+  z-index: 2;
+}
+
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 42px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 102px;
+}
+
+.header-left {
+  flex: 1;
+  color: #27c16e;
+  font-size: 16px;
+  text-align: left;
+  padding-left: 24px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.header-center {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #222;
+  line-height: 1.2;
+}
+
+.header-status {
+  font-size: 15px;
+  color: #27c16e;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.header-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 24px;
+  min-width: 38px;
+  height: 38px;
 }
 
 .chat-content {
-  position: relative;
-  z-index: 1;
-  padding: 16px 0 0 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 102px;
+  padding: 12px 0;
   overflow-y: auto;
-  transition: max-height 0.2s;
+  flex-direction: column;
+  align-items: stretch;
+  display: flex;
+}
+
+.chat-msg {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chat-msg-left,
+.chat-msg-right {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 8px;
+}
+
+.chat-msg-left {
+  align-items: flex-end;
+}
+
+.chat-msg-left .msg-avatar,
+.chat-msg-right .msg-avatar {
+  margin-right: 10px;
+  /* 调整头像间距 */
+}
+
+.chat-msg-right {
+  flex-direction: row-reverse;
+  align-items: flex-end;
+}
+
+.msg-avatar {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border: 2px solid #d1e7e4;
+}
+
+.msg-bubble {
+  max-width: calc(100vw - 48px);
+  /* 48px为左右padding和边距，可根据实际调整 */
+  min-width: 44px;
+  padding: 0 18px;
+  box-shadow: 0 4px 12px rgba(39, 193, 110, 0.15);
+  /* 增加阴影 */
+  position: relative;
+  font-size: 17px;
+  margin: 8px 4px;
+  word-break: break-word;
+  flex-shrink: 1;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  border-radius: 20px;
+  /* 增大圆角 */
+  line-height: 1.6;
+  background-color: #fff;
+  color: #333;
+  display: inline-block;
+}
+
+.msg-bubble-other {
+  background: #ffffff;
+  border-radius: 20px;
+  /* 更大的圆角 */
+  border: 1px solid #eaeaea;
+}
+
+.msg-bubble-self {
+  background: #d6f5e6;
+  border-radius: 20px;
+  /* 更大的圆角 */
+  border: 1px solid #b2f2d6;
+}
+
+.msg-bubble-other:after {
+  content: '';
+  position: absolute;
+  left: -12px;
+  /* 调整气泡尾巴位置 */
+  top: 16px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 12px solid #ffffff;
+  /* 提升气泡尾巴的可视效果 */
+}
+
+.msg-bubble-self:after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  /* 调整气泡尾巴位置 */
+  top: 16px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid #d6f5e6;
+  /* 提升气泡尾巴的可视效果 */
+}
+
+.msg-img {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 14px;
+  display: block;
+  margin: 4px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.msg-text {
+  color: #222;
+  display: block;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+
+.msg-time {
+  font-size: 12px;
+  color: #b2b2b2;
+  text-align: right;
+}
+
+.chat-tip {
+  color: #b2b2b2;
+  font-size: 15px;
+  margin-top: 18px;
+  padding: 5px;
+  text-align: center;
 }
 
 .chat-date {
@@ -528,70 +647,6 @@ function onCameraChange(e) {
   background: #eafaf1;
   border-radius: 8px;
   padding: 2px 0;
-}
-
-.chat-msg {
-  display: flex;
-  align-items: flex-end;
-  margin-bottom: 14px;
-}
-
-.chat-msg-left {
-  flex-direction: row;
-}
-
-.chat-msg-right {
-  flex-direction: row-reverse;
-}
-
-.msg-avatar img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin: 0 6px;
-}
-
-.msg-body {
-  max-width: 70vw;
-  background: #fff;
-  border-radius: 18px;
-  padding: 10px 16px 8px 16px;
-  margin: 0 8px;
-  box-shadow: 0 2px 12px rgba(39, 193, 110, 0.08);
-  position: relative;
-}
-
-.msg-body-self {
-  background: #d6f5e6;
-}
-
-.msg-text {
-  font-size: 17px;
-  color: #222;
-  margin-bottom: 6px;
-  word-break: break-word;
-}
-
-.msg-text img {
-  max-width: 180px;
-  max-height: 180px;
-  border-radius: 10px;
-  display: block;
-  margin: 4px 0;
-}
-
-.msg-time {
-  font-size: 12px;
-  color: #b2b2b2;
-  text-align: right;
-}
-
-.chat-tip {
-  text-align: center;
-  color: #b2b2b2;
-  font-size: 15px;
-  margin: 18px 0 0 0;
 }
 
 .chat-empty {
@@ -660,6 +715,7 @@ function onCameraChange(e) {
   box-shadow: 0 2px 8px rgba(39, 193, 110, 0.08);
   min-width: 60px;
   white-space: nowrap;
+  font-size: 16px;
 }
 
 .chat-tool-bar {
@@ -702,17 +758,20 @@ function onCameraChange(e) {
   color: #888;
 }
 
-.icon-img,
-.icon-camera,
-.icon-phone,
-.icon-video,
-.icon-user,
-.icon-group,
-.icon-file {
+.icon-camera {
   display: block;
   width: 32px;
   height: 32px;
-  background: #eaeaea;
+  background: url('/images/icon-camera.svg') no-repeat center/18px 18px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+.icon-album {
+  display: block;
+  width: 32px;
+  height: 32px;
+  background: url('/images/icon-album.svg') no-repeat center/18px 18px;
   border-radius: 10px;
   margin-bottom: 6px;
 }

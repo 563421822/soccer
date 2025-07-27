@@ -48,8 +48,7 @@ export const useHomeStore = defineStore('home', {
                     console.info("未找到群聊消息，创建新消息")
                     console.info(msg)
                     this.groupMessages.unshift({
-                        groupId: parseInt(msg.groupId),
-                        groupChat: { name: msg.groupChat.name},
+                        groupChat: { name: msg.groupChat.name, groupId: parseInt(msg.groupId)},
                         content: msg.content,
                         sendTime: msg.sendTime,
                         unreadCount: isActiveChatPage ? 0 : 1,
@@ -61,15 +60,16 @@ export const useHomeStore = defineStore('home', {
                     return item.user && item.user.id === parseInt(msg.receiverId)
                 })
                 if (found) {
+                    console.info("找到私聊消息，更新内容")
                     if (!isActiveChatPage) {
                         found.unreadCount = (found.unreadCount || 0) + 1
                     }
                     found.sendTime = msg.sendTime
                     found.content = msg.content
                 } else {
+                    console.info("未找到私聊消息，创建新消息")
                     this.privateMessages.unshift({
-                        user: { id: parseInt(msg.receiverId), username: msg.username },
-                        receiverId: parseInt(msg.receiverId),
+                        user: { id: parseInt(msg.receiverId), username: msg.user.username },
                         content: msg.content,
                         sendTime: msg.sendTime,
                         unreadCount: isActiveChatPage ? 0 : 1,

@@ -3,9 +3,6 @@ html, body, #app {
     background: #fff;
     box-sizing: border-box;
 }
-#app {
-    font-weight: normal;
-}
 
 a,
 .green {

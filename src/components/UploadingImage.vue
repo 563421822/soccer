@@ -1,9 +1,5 @@
-<!-- UploadingImage.vue -->
 <template>
   <div class="chat-msg chat-msg-right">
-    <div class="msg-avatar">
-      <img :src="avatar" class="upload-avatar" />
-    </div>
     <div class="msg-body msg-body-self">
       <div class="msg-text uploading-container">
         <img :src="previewUrl" class="upload-preview" />

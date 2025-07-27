@@ -13,7 +13,7 @@
     <div class="edit-form-card">
       <div class="edit-form-row">
         <span class="edit-form-label">用户名</span>
-        <input class="edit-form-input" type="text" v-model="username" />
+        <input class="edit-form-input" type="text" v-model="username" readonly />
       </div>
       <div class="edit-form-row">
         <span class="edit-form-label">昵称</span>
@@ -76,12 +76,9 @@ function logout() {
   font-weight: 500;
   position: relative;
 }
-.edit-cancel {
-  color: #267efb;
-  cursor: pointer;
-}
-.edit-done {
-  color: #267efb;
+.edit-cancel,.edit-done {
+  color: #27c16e;
+  font-size: 16px;
   cursor: pointer;
 }
 .edit-avatar-area {
