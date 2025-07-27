@@ -50,6 +50,7 @@ button {
 
 .update-page {
   padding: 60px 24px 24px 24px;
+  width: 100vw;
 }
 
 .back-btn {

@@ -35,7 +35,7 @@ export const useHomeStore = defineStore('home', {
             if (msg.type === 'group') {
                 console.info("收到群聊消息", this.groupMessages)
                 let found = this.groupMessages.find(item => {
-                    return item.groupId === parseInt(msg.groupId)
+                    return item.groupChat.groupId === parseInt(msg.groupChat.groupId)
                 })
                 if (found) {
                     console.info("找到群聊消息，更新内容")

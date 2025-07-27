@@ -127,7 +127,7 @@ function goPage(path) {
   right: 16px;
   top: 34px;
   color: #27c24c;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   z-index: 2;
 }

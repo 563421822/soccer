@@ -47,7 +47,7 @@ function goBack() {
 
 function saveEdit() {
   // 保存逻辑，实际业务可根据需要调整
-  homeStore.updateProfile({ username: nickname.value, usrSn: username.value, bio: bio.value })
+  // homeStore.updateProfile({ username: nickname.value, usrSn: username.value, bio: bio.value })
   goBack()
 }
 

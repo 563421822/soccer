@@ -9,17 +9,20 @@
     <textarea v-model="content" placeholder="请输入您的宝贵意见..." rows="5"></textarea>
     <button class="submit-btn" @click="submitFeedback">提交反馈</button>
     <div v-if="submitted" class="success-msg">感谢您的反馈！</div>
+    <div v-if="showToast" class="toast">{{ toastMsg }}</div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useErrorToast } from "@/utils/toast.js"
+const { showToast, toastMsg, showErrorToast } = useErrorToast()
 const anonymous = ref(false)
 const content = ref('')
 const submitted = ref(false)
 const router = useRouter()
 function submitFeedback() {
-  if (!content.value) return alert('请输入反馈内容')
+  if (!content.value) return showErrorToast('请输入反馈内容')
   // 这里可接入后端API
   submitted.value = true
   setTimeout(() => { submitted.value = false; content.value = '' }, 2000)
@@ -31,6 +34,7 @@ function goBack() {
 <style scoped>
 .feedback-page {
   padding: 60px 24px 24px 24px;
+  width: 100vw;
 }
 
 h2 {
@@ -89,4 +93,24 @@ textarea {
   font-size: 16px;
   cursor: pointer;
 }
+
+.toast {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 120px;
+    max-width: 80vw;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    border-radius: 10px;
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 16px;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+    animation: toast-fade-in 0.2s;
+}
+
 </style>

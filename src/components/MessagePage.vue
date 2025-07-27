@@ -448,11 +448,10 @@ defineExpose({ saveScroll, restoreScroll })
 }
 
 .chat-list {
-  flex: 1;
   overflow-y: auto;
   background: #fff;
-  /* 防止下拉时内容被遮挡 */
   position: relative;
+  height: 473px;
 }
 
 .refresh-indicator {
@@ -547,7 +546,7 @@ defineExpose({ saveScroll, restoreScroll })
   position: absolute;
   right: -4px;
   top: -4px;
-  background: #267efb;
+  background: #e74c3c;
   color: #fff;
   font-size: 13px;
   border-radius: 10px;

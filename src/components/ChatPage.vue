@@ -1,6 +1,5 @@
 <template>
   <div class="chat-page">
-    <!-- 顶部导航栏 -->
     <div class="fixed-header">
       <span class="header-left" @click="goBack" aria-label="返回">&lt;&nbsp;返回</span>
       <div class="header-center">
@@ -14,18 +13,15 @@
     <!-- 消息内容区 -->
     <div class="chat-content" ref="chatContentRef"
       :style="{ height: showToolBar ? 'calc(100vh - 259px)' : 'calc(100vh - 164px)' }">
-      <div class="chat-bg"></div>
       <div v-if="loading" class="chat-loading">加载中...</div>
       <template v-else>
         <div class="chat-tip">您已添加了 {{ chatTitle }}，现在可以开始聊天了</div>
-        <div class="chat-divider">- 以下是未读消息 -</div>
-        <div class="chat-date">今天</div>
-        <!-- 消息列表（建议拆分为 ChatMessageList 组件） -->
+        <div class="chat-divider">- 以下是以往消息 -</div>
         <div v-for="msg in messages" :key="msg.id"
           :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
           <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
             <template v-if="msg.msgType === 'image'">
-              <img :src="msg.content" alt="图片消息" class="msg-img" />
+              <img :src="msg.content" alt="图片消息" class="msg-img" @load="scrollToBottom"/>
             </template>
             <template v-else>
               <span class="msg-text">{{ msg.content }}</span>
@@ -34,10 +30,6 @@
           </div>
         </div>
         <div v-if="!messages.length" class="chat-empty">暂无聊天记录</div>
-        <!-- 上传中图片预览 -->
-        <UploadingImage v-for="img in pendingImages" :key="img.id" :previewUrl="img.url" :finalUrl="img.finalUrl"
-          :avatar="profileData?.avatar || '/images/avatar.svg'" :time="img.time" :progress="img.progress"
-          :done="img.done" />
       </template>
     </div>
     <!-- 输入区（建议拆分为 ChatInputBar 组件） -->
@@ -47,37 +39,20 @@
           <div class="tool-item" @click="onSelectImage"><span class="icon-album"></span>相册</div>
           <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="onImageChange" />
           <div class="tool-item" @click="onTakePhoto"><span class="icon-camera"></span>拍摄</div>
-          <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none" @change="onCameraChange" />
+          <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none"
+            @change="onImageChange" />
         </div>
       </transition>
       <div class="chat-input-bar">
         <button class="chat-plus" @click="toggleToolBar" aria-label="更多功能">
-          <span v-if="!showToolBar">＋</span>
-          <span v-else style="display:inline-block;transform:rotate(45deg);font-size:28px;">＋</span>
+          <span
+            :style="{ transform: showToolBar ? 'rotate(45deg)' : 'none', fontSize: showToolBar ? '28px' : 'inherit' }">＋</span>
         </button>
         <input v-model="inputText" class="chat-input" placeholder="输入消息..." @keyup.enter="sendMsg" aria-label="输入消息" />
         <button class="chat-send-btn" @click="sendMsg" aria-label="发送消息">发送</button>
       </div>
     </div>
-    <!-- Toast提示 -->
     <div v-if="showToast" class="toast">{{ toastMsg }}</div>
-    <!-- 拍摄图片预览 -->
-    <div v-if="cameraPreviewUrl" class="chat-msg chat-msg-right">
-      <div class="msg-body msg-body-self">
-        <div class="msg-text">
-          <img :src="cameraPreviewUrl" alt="拍摄图片" />
-          <div style="font-size:12px;color:#aaa;">[拍摄图片预览]</div>
-        </div>
-        <div class="msg-time">{{ cameraPreviewTime }}</div>
-      </div>
-    </div>
-    <!-- 上传进度遮罩 -->
-    <div v-if="showUploadOverlay" class="upload-overlay">
-      <div class="upload-progress">
-        <div class="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
-        <div class="progress-text">{{ uploadProgress }}%</div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -88,7 +63,6 @@ import api from '@/api/config'
 import { useHomeStore } from '@/store/home'
 import { storeToRefs } from 'pinia'
 import { useErrorToast } from "@/utils/toast.js"
-import UploadingImage from '@/components/UploadingImage.vue'
 
 const homeStore = useHomeStore()
 const { profileData, contacts } = storeToRefs(homeStore)
@@ -103,16 +77,11 @@ const inputText = ref('')
 const showToolBar = ref(false)
 const fileInputRef = ref(null)
 const cameraInputRef = ref(null)
-const cameraPreviewUrl = ref('')
-const cameraPreviewTime = ref('')
 
 const chatType = computed(() => route.query.type)
 const chatId = computed(() => route.query.id)
 const chatTitle = computed(() => route.query.name || '聊天')
 const { showToast, toastMsg, showErrorToast } = useErrorToast()
-const showUploadOverlay = ref(false)
-const uploadProgress = ref(0)
-const pendingImages = ref([])
 
 const chatAvatar = computed(() => {
   if (chatType.value === 'private') {
@@ -146,6 +115,7 @@ async function fetchMessages(pageNum = 1) {
 // 优化：watch 只在 chatType/chatId 变化时拉取消息
 watch([chatType, chatId], async ([newType, newId]) => {
   if (newType && newId) {
+    // 强制清空消息缓存
     messages.value = []
     loading.value = true
     let pageNum = 1
@@ -162,6 +132,7 @@ watch([chatType, chatId], async ([newType, newId]) => {
     scrollToBottom()
   }
 }, { immediate: true })
+
 
 const emit = defineEmits(['refreshMessageList'])
 
@@ -193,7 +164,6 @@ function sendMsg() {
     sendTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
     id: 'local-' + Date.now()
   }
-  console.info(msg.user)
   if (window.$ws && window.$ws.readyState === 1) {
     window.$ws.send(JSON.stringify(msg))
     messages.value.push({
@@ -251,23 +221,22 @@ async function onImageChange(e) {
   if (!file) return
   const localUrl = URL.createObjectURL(file)
   const tempId = 'pending-' + Date.now()
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 16)
-  pendingImages.value.push({
-    id: tempId,
-    url: localUrl,
-    progress: 0,
-    time: now,
-    done: false,
-    finalUrl: ''
-  })
-  let progress = 0
-  const timer = setInterval(() => {
-    if (progress < 95) {
-      progress += Math.floor(Math.random() * 5) + 1
-      const item = pendingImages.value.find(p => p.id === tempId)
-      item && (item.progress = Math.min(progress, 95))
-    }
-  }, 100)
+  const msg = {
+    type: chatType.value,
+    user: {
+      id: profileData.value.id,
+      username: profileData.value.username,
+      avatar: profileData.value.avatar
+    },
+    ...(chatType.value === 'private' ? { receiverId: chatId.value } : {}),
+    ...(chatType.value === 'group' ? { groupChat: { name: chatTitle.value, groupId: chatId.value } } : {}),
+    content: localUrl,
+    msgType: 'image',
+    senderId: profileData.value.id,
+    sendTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    id: tempId
+  }
+  messages.value.push(msg)
   const formData = new FormData()
   formData.append('file', file)
   let imageUrl = ''
@@ -278,65 +247,15 @@ async function onImageChange(e) {
     imageUrl = res.data?.url
     if (!imageUrl) throw new Error('上传失败')
   } catch (err) {
-    showErrorToast('图片上传失败')
-    clearInterval(timer)
-    pendingImages.value = pendingImages.value.filter(p => p.id !== tempId)
+    showErrorToast(err.message || '图片上传失败')
     return
-  }
-  clearInterval(timer)
-  const item = pendingImages.value.find(p => p.id === tempId)
-  if (item) {
-    item.progress = 100
-    item.done = true
-    item.finalUrl = imageUrl
-  }
-  sendImageMsg(imageUrl)
-}
-
-// 优化：图片消息发送逻辑
-function sendImageMsg(imageUrl) {
-  const msg = {
-    type: chatType.value,
-    user: {
-      id: profileData.value.id,
-      username: profileData.value.username,
-      avatar: profileData.value.avatar
-    },
-    receiverId: chatType.value === 'private' ? chatId.value : undefined,
-    groupId: chatType.value === 'group' ? chatId.value : undefined,
-    groupChat: { name: chatTitle.value },
-    username: chatTitle.value,
-    content: imageUrl,
-    sendTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    id: 'local-img-' + Date.now(),
-    msgType: 'image'
   }
   if (window.$ws && window.$ws.readyState === 1) {
     window.$ws.send(JSON.stringify(msg))
-    messages.value.push({
-      id: msg.id,
-      senderId: profileData.value.id,
-      user: { ...profileData.value },
-      content: msg.content,
-      sendTime: msg.sendTime,
-      msgType: 'image'
-    })
     homeStore.incrementUnreadByMsg(msg, true)
   } else {
     showErrorToast("消息通道未连接")
   }
-  scrollToBottom()
-}
-
-function onCameraChange(e) {
-  const file = e.target.files && e.target.files[0]
-  if (!file) return
-  if (!file.type.startsWith('image/')) {
-    showErrorToast('请选择图片文件')
-    return
-  }
-  cameraPreviewUrl.value = URL.createObjectURL(file)
-  cameraPreviewTime.value = new Date().toISOString().replace('T', ' ').substring(0, 16)
 }
 
 function goToUserProfile() {
@@ -361,21 +280,10 @@ function goToUserProfile() {
 
 <style scoped>
 .chat-page {
-  position: relative;
   min-height: 100vh;
   background: #f3fcf6;
   overflow: hidden;
-}
-
-.chat-bg {
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background: url('/images/chat-bg-green.png') repeat;
-  opacity: 0.5;
-  z-index: 0;
+  width: 100vw;
 }
 
 .chat-back {
@@ -490,9 +398,12 @@ function goToUserProfile() {
 }
 
 .chat-content {
+  position: absolute;
+  top: 102px;
+  left: 0;
+  right: 0;
   max-width: 100%;
   box-sizing: border-box;
-  margin-top: 102px;
   padding: 12px 0;
   overflow-y: auto;
   flex-direction: column;
@@ -522,7 +433,6 @@ function goToUserProfile() {
 .chat-msg-left .msg-avatar,
 .chat-msg-right .msg-avatar {
   margin-right: 10px;
-  /* 调整头像间距 */
 }
 
 .chat-msg-right {
@@ -540,14 +450,13 @@ function goToUserProfile() {
 
 .msg-bubble {
   max-width: calc(100vw - 48px);
-  /* 48px为左右padding和边距，可根据实际调整 */
   min-width: 44px;
   padding: 0 18px;
   box-shadow: 0 4px 12px rgba(39, 193, 110, 0.15);
   /* 增加阴影 */
   position: relative;
   font-size: 17px;
-  margin: 8px 4px;
+  margin: 4px 4px;
   word-break: break-word;
   flex-shrink: 1;
   box-sizing: border-box;
@@ -603,7 +512,7 @@ function goToUserProfile() {
 }
 
 .msg-img {
-  max-width: 100%;
+  max-width: 150px;
   max-height: 180px;
   border-radius: 14px;
   display: block;
@@ -777,10 +686,22 @@ function goToUserProfile() {
 }
 
 .toast {
-  margin-top: 12px;
-  color: #e74c3c;
-  text-align: center;
-  font-size: 15px;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 120px;
+    max-width: 80vw;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    border-radius: 10px;
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 16px;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+    animation: toast-fade-in 0.2s;
 }
 
 .chat-loading {
@@ -852,21 +773,5 @@ function goToUserProfile() {
 .revoke-slide-leave-to {
   opacity: 0;
   transform: translateX(60%) scale(0.95);
-}
-
-.sending-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #27c16e;
-  font-weight: bold;
-  border-radius: 10px;
 }
 </style>

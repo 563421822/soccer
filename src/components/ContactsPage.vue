@@ -30,10 +30,8 @@
         <div class="tabs-content" :style="tabsContentStyle">
           <template v-if="filteredList.length">
             <div v-for="item in filteredList" :key="item.key" class="contact-row" @click="handleOpen(item)">
-              <img v-if="item.avatar" :src="item.avatar"
-                :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'" />
-              <div v-else :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'">{{ item.name.charAt(0) }}
-              </div>
+              <img v-if="item.avatar" :src="item.avatar" :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'" />
+              <div v-else :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'">{{ item.name.charAt(0) }}</div>
               <div class="contact-info">
                 <div class="contact-name">{{ item.name }}</div>
                 <div class="contact-status" v-if="activeTab === 'friend'">当前在线</div>

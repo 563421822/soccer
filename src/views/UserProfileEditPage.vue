@@ -40,8 +40,8 @@ const router = useRouter()
 const route = useRoute()
 
 const note = ref('')
-const nickname = ref(route.query.username || '主播助理 小小.')
-const username = ref(route.query.userId || 'acc666')
+const nickname = ref(route.query.username)
+const username = ref(route.query.userId)
 
 function goBack() {
   router.back()
@@ -49,7 +49,7 @@ function goBack() {
 
 function onDone() {
   // 保存备注逻辑
-  alert(`备注：${note.value}`)
+  goBack()
 }
 
 function onDelete() {
