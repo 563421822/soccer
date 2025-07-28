@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
   border-top-left-radius: 28px;
   border-top-right-radius: 28px;
   box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
-  padding: 32px 24px 24px 24px;
+  padding: 32px 24px 84px 24px;
   margin-top: 48px;
   animation: slide-up 0.35s cubic-bezier(.4, 0, .2, 1);
   max-height: calc(100vh - 48px);
