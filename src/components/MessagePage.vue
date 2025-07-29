@@ -36,7 +36,7 @@
               <div class="chat-time">{{ item.sendTime && item.sendTime.slice(5, 10) }}</div>
             </div>
             <button v-if="swipeStates[item.key]" class="swipe-delete-btn" :class="{ deleting: deletingId === item.key }" :disabled="deletingId === item.key" @mousedown.stop="onDeleteBtnClick(item)">
-              <span v-if="deletingId !== item.key">删除</span>
+              <span v-if="deletingId !== item.key">查看</span>
               <span v-else class="loading-spinner"></span>
             </button>
           </div>

@@ -40,8 +40,7 @@ function setupWebSocket() {
     msg.receiverId = msg.type === 'private' ? msg.user.id : msg.groupId
     // 正确获取当前路由
     const route = router.currentRoute.value
-    const isActiveChatPage =
-      route.path === '/chat' && route.query.type === msg.type &&
+    const isActiveChatPage = route.path === '/chat' && route.query.type === msg.type &&
       (
         (msg.type === 'private' && (route.query.id == msg.user.id || route.query.id == msg.receiverId)) ||
         (msg.type === 'group' && route.query.id == msg.groupId)

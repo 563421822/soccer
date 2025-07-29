@@ -84,6 +84,7 @@ async function submit() {
     showErrorToast('两次输入的密码不一致')
     return
   }
+  isLoading.value = true
   try {
     // 这里可以添加邀请码校验逻辑，如果需要
     const response = await api.post('/register', {

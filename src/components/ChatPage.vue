@@ -250,6 +250,7 @@ async function onImageChange(e) {
     showErrorToast(err.message || '图片上传失败')
     return
   }
+  msg.content = imageUrl
   if (window.$ws && window.$ws.readyState === 1) {
     window.$ws.send(JSON.stringify(msg))
     homeStore.incrementUnreadByMsg(msg, true)
