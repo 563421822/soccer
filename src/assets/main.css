@@ -1,32 +1,37 @@
 @import './base.css';
-html, body, #app {
-    background: #fff;
-    box-sizing: border-box;
+
+/* === 通用基础样式 === */
+html,
+body {
+  height: 100%; /* 为 flex 居中提供基础 */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: #fff;
+  overflow: hidden;
 }
 
-a,
-.green {
-    text-decoration: none;
-    color: hsla(160, 100%, 37%, 1);
-    transition: 0.4s;
-    padding: 3px;
+#app {
+  height: 100%; /* 小屏默认撑满高度，适应移动端 */
 }
 
-@media (hover: hover) {
-    a:hover {
-        background-color: hsla(160, 100%, 37%, 0.2);
-    }
-}
-
+/* === 大屏适配：居中布局 === */
 @media (min-width: 1024px) {
-    body {
-        display: flex;
-        place-items: center;
-    }
+  html,
+  body {
+    height: 100vh;
+  }
 
-    #app {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
+  body {
+    display: flex;
+    justify-content: center;
+  }
+
+  #app {
+    width: 800px;
+    max-width: 100%;
+    height: auto; /* 清除小屏的100%高度 */
+    display: flex;
+    flex-direction: column;
+  }
 }

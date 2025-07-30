@@ -50,13 +50,9 @@ button {
 
 .update-page {
   padding: 60px 24px 24px 24px;
-  width: 100vw;
 }
 
 .back-btn {
-  position: absolute;
-  left: 16px;
-  top: 34px;
   color: #27c16e;
   font-size: 16px;
   cursor: pointer;

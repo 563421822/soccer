@@ -33,21 +33,24 @@ export const useHomeStore = defineStore('home', {
         },
         incrementUnreadByMsg(msg, isActiveChatPage = false) {
             if (msg.type === 'group') {
-                console.info("收到群聊消息", this.groupMessages)
+                console.info("1. 收到群聊消息")
+                console.info(this.groupMessages)
+                console.info(msg)
                 let found = this.groupMessages.find(item => {
-                    return item.groupChat.groupId === parseInt(msg.groupChat.groupId)
+                    return item.groupId === parseInt(msg.groupChat.groupId)
                 })
                 if (found) {
-                    console.info("找到群聊消息，更新内容")
+                    console.info("2. 找到群聊消息，更新内容")
                     found.sendTime = msg.sendTime
                     found.content = msg.content
                     if (!isActiveChatPage) {
                         found.unreadCount = (found.unreadCount || 0) + 1
                     }
                 } else {
-                    console.info("未找到群聊消息，创建新消息")
+                    console.info("2. 未找到群聊消息，创建新消息")
                     console.info(msg)
                     this.groupMessages.unshift({
+                        groupId: parseInt(msg.groupId),
                         groupChat: { name: msg.groupChat.name, groupId: parseInt(msg.groupId)},
                         content: msg.content,
                         sendTime: msg.sendTime,
@@ -69,7 +72,7 @@ export const useHomeStore = defineStore('home', {
                 } else {
                     console.info("未找到私聊消息，创建新消息")
                     this.privateMessages.unshift({
-                        user: { id: parseInt(msg.receiverId), username: msg.user.username },
+                        user: { id: parseInt(msg.receiverId), username: msg.user.username, avarar: msg.user.avatar },
                         content: msg.content,
                         sendTime: msg.sendTime,
                         unreadCount: isActiveChatPage ? 0 : 1,

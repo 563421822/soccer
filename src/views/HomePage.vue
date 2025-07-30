@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+     <div class="loading-mask" :class="{ active: loading }">
+      <div class="loading-spinner"></div>
+    </div>
     <div class="page-header" v-if="currentTab !== 'profile'">
       <template v-if="currentTab === 'message'">
         <div class="header-bar">
@@ -17,8 +20,7 @@
         <div class="header-bar">
           <span></span>
           <span class="header-title">联系人</span>
-          <span v-if="profileData.roles[0].name === 'ADMIN'" class=" header-add"
-            @click="showCreateGroupDialog = true">+</span>
+          <span v-if="profileData.roles[0].name === 'ADMIN'" class="header-add" @click="showCreateGroupDialog = true">+</span>
         </div>
       </template>
     </div>
@@ -41,9 +43,6 @@
       </div>
     </div>
     <div v-if="showToast" class="toast">{{ toastMsg }}</div>
-    <div class="loading-mask" :class="{ active: loading }">
-      <div class="loading-spinner"></div>
-    </div>
     <div class="content">
       <MessagePage ref="messagePageRef" :active="currentTab === 'message'" v-show="currentTab === 'message'"
         :isEdit="isMsgEdit" :selectedIds="selectedIds" @refreshMessageList="refreshMessageList"

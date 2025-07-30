@@ -264,6 +264,11 @@ onBeforeUnmount(() => {
   margin-top: 18px;
 }
 
+.register-btn:disabled {
+  background: #a5e2c2;
+  color: #fff;
+}
+
 .toast {
   position: fixed;
   left: 50%;

@@ -7,7 +7,7 @@
         <div class="login-title">账号登录</div>
       </div>
       <div class="login-header-right">
-      <img src="https://lqiuapp.com/static/liaoGeQiu/APP_icon.png" alt="LeTalk Logo" class="login-logo" />
+        <img src="https://lqiuapp.com/static/liaoGeQiu/APP_icon.png" alt="LeTalk Logo" class="login-logo" />
       </div>
     </div>
     <div class="login-form">
@@ -34,8 +34,8 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue'
-import {useRouter} from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '@/api/config'
 import { useErrorToast } from '@/utils/toast'
 import RegisterSheet from '@/components/RegisterSheet.vue'
@@ -70,8 +70,7 @@ const handleLogin = async () => {
       showErrorToast('账号或密码错误')
     }
   } catch (err) {
-    const url = err.config?.baseURL + err.config?.url
-    showErrorToast(`登录失败（${err.response?.status || '未知错误'}），${err.response.data}`)
+    showErrorToast(`登录失败（${err.response?.status || '未知错误'}）${err.response.data}`)
   } finally {
     isLoading.value = false
   }
@@ -93,6 +92,7 @@ watch(showRegisterSheet, (val) => {
   justify-content: flex-start;
   font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
 }
+
 .login-header {
   width: 100%;
   display: flex;
@@ -101,37 +101,44 @@ watch(showRegisterSheet, (val) => {
   margin-top: 40px;
   padding: 0 32px;
 }
+
 .login-header-left {
   flex: 1;
 }
+
 .welcome {
   font-size: 20px;
   color: #222;
   margin-bottom: 8px;
   font-weight: 500;
 }
+
 .version {
   font-size: 14px;
   color: #aaa;
   margin-bottom: 16px;
 }
+
 .login-title {
   font-size: 18px;
   color: #27c16e;
   font-weight: 600;
   margin-bottom: 0;
 }
+
 .login-header-right {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .login-logo {
   width: 80px;
   height: 80px;
   border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(39,193,110,0.08);
+  box-shadow: 0 2px 8px rgba(39, 193, 110, 0.08);
 }
+
 .login-form {
   width: 90%;
   max-width: 340px;
@@ -140,6 +147,7 @@ watch(showRegisterSheet, (val) => {
   flex-direction: column;
   align-items: stretch;
 }
+
 .login-input {
   height: 48px;
   border: none;
@@ -151,9 +159,11 @@ watch(showRegisterSheet, (val) => {
   color: #222;
   outline: none;
 }
+
 .login-input::placeholder {
   color: #bbb;
 }
+
 .login-btn {
   height: 48px;
   background: #27c16e;
@@ -163,12 +173,14 @@ watch(showRegisterSheet, (val) => {
   font-size: 18px;
   font-weight: 500;
   margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(39,193,110,0.08);
+  box-shadow: 0 2px 8px rgba(39, 193, 110, 0.08);
 }
+
 .login-btn:disabled {
   background: #a5e2c2;
   color: #fff;
 }
+
 .register-btn {
   height: 48px;
   background: #f6f6f6;
@@ -179,44 +191,62 @@ watch(showRegisterSheet, (val) => {
   font-weight: 500;
   margin-bottom: 16px;
 }
+
 .forgot-row {
   text-align: center;
   margin-bottom: 8px;
 }
+
 .forgot-link {
   color: #27c16e;
   font-size: 16px;
   text-decoration: none;
 }
+
 .toast {
-  margin-top: 12px;
-  color: #e74c3c;
-  text-align: center;
-  font-size: 15px;
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 2000;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .login-footer {
   width: 100%;
-  position: fixed;
-  left: 0;
-  bottom: 0;
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 0 32px 16px 32px;
   color: #ccc;
   font-size: 15px;
+  margin-top: auto;
+  /* ← 关键：把 footer 顶到底部 */
 }
-.footer-left, .footer-right {
+
+.footer-left,
+.footer-right {
   opacity: 0.7;
 }
-.slide-up-enter-active, .slide-up-leave-active {
-  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.35s cubic-bezier(.4, 0, .2, 1);
 }
-.slide-up-enter-from, .slide-up-leave-to {
+
+.slide-up-enter-from,
+.slide-up-leave-to {
   transform: translateY(100%);
   opacity: 0;
 }
-.slide-up-enter-to, .slide-up-leave-from {
+
+.slide-up-enter-to,
+.slide-up-leave-from {
   transform: translateY(0);
   opacity: 1;
 }

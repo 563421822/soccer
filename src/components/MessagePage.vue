@@ -70,7 +70,7 @@ const emit = defineEmits(['update:selectedIds'])
 
 const searchText = ref('')
 const homeStore = useHomeStore()
-const { groupMessages: chatList, privateMessages: privateList, profileData } = storeToRefs(homeStore)
+const { groupMessages: groupList, privateMessages: privateList, profileData } = storeToRefs(homeStore)
 const chatListRef = ref(null)
 let lastScrollTop = 0
 const router = useRouter()
@@ -86,8 +86,8 @@ function showToast(msg, duration = 1500) {
 }
 
 const filteredGroupList = computed(() => {
-  if (!searchText.value) return chatList.value
-  return chatList.value.filter(item =>
+  if (!searchText.value) return groupList.value
+  return groupList.value.filter(item =>
     item.groupChat.name.includes(searchText.value) || item.content.includes(searchText.value)
   )
 })
@@ -169,10 +169,10 @@ function restoreScroll() {
 
 function moveItemToTop(type, id) {
   if (type === 'group') {
-    const idx = chatList.value.findIndex(item => item.groupId === id)
+    const idx = groupList.value.findIndex(item => item.groupId === id)
     if (idx > 0) {
-      const [item] = chatList.value.splice(idx, 1)
-      chatList.value.unshift(item)
+      const [item] = groupList.value.splice(idx, 1)
+      groupList.value.unshift(item)
     }
   } else if (type === 'private') {
     const idx = privateList.value.findIndex(item => (item.senderId === id || item.receiverId === id))
@@ -184,12 +184,12 @@ function moveItemToTop(type, id) {
 }
 
 watch(
-  () => [chatList.value.map(i => i.content), privateList.value.map(i => i.content)],
+  () => [groupList.value.map(i => i.content), privateList.value.map(i => i.content)],
   ([newGroupContents, newPrivateContents], [oldGroupContents, oldPrivateContents]) => {
     if (oldGroupContents) {
       for (let i = 0; i < newGroupContents.length; i++) {
         if (newGroupContents[i] !== oldGroupContents[i]) {
-          moveItemToTop('group', chatList.value[i].groupId)
+          moveItemToTop('group', groupList.value[i].groupId)
           break
         }
       }
@@ -295,8 +295,8 @@ async function deleteItem(type, id) {
     setTimeout(() => {
       // 删除数据
       if (type === 'group') {
-        const idx = chatList.value.findIndex(item => item.groupId === id)
-        if (idx !== -1) chatList.value.splice(idx, 1)
+        const idx = groupList.value.findIndex(item => item.groupId === id)
+        if (idx !== -1) groupList.value.splice(idx, 1)
       } else if (type === 'private') {
         const idx = privateList.value.findIndex(item => item.user.id === id)
         if (idx !== -1) privateList.value.splice(idx, 1)
@@ -384,6 +384,10 @@ function triggerRefresh() {
   setTimeout(() => {
     isRefreshing.value = false
     refreshHeight.value = 0
+    showToast('刷新完成')
+    setTimeout(() => {
+      location.reload()
+    }, 1500);
   }, 1000)
 }
 

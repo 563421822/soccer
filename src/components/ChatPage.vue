@@ -21,7 +21,7 @@
           :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
           <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
             <template v-if="msg.msgType === 'image'">
-              <img :src="msg.content" alt="图片消息" class="msg-img" @load="scrollToBottom"/>
+              <img :src="msg.content" alt="图片消息" class="msg-img" @load="scrollToBottom" />
             </template>
             <template v-else>
               <span class="msg-text">{{ msg.content }}</span>
@@ -48,7 +48,7 @@
           <span
             :style="{ transform: showToolBar ? 'rotate(45deg)' : 'none', fontSize: showToolBar ? '28px' : 'inherit' }">＋</span>
         </button>
-        <input v-model="inputText" class="chat-input" placeholder="输入消息..." @keyup.enter="sendMsg" aria-label="输入消息" />
+        <textarea v-model="inputText" class="chat-input" placeholder="输入消息..." @keydown="handleKeydown" />
         <button class="chat-send-btn" @click="sendMsg" aria-label="发送消息">发送</button>
       </div>
     </div>
@@ -88,13 +88,36 @@ const chatAvatar = computed(() => {
     const item = contacts.value.find(
       m => String(m.id) === String(chatId.value)
     )
-    return item?.avatar || '/images/user.svg'
+    return parseInt(chatId.value) === 1 ? 'https://th.bing.com/th/id/OIP.dwEgyh_FlgXObvZP-iurSQHaHa?rs=1&pid=ImgDetMain' : item?.avatar || '/images/user.svg'
   }
   return '/images/avatar.svg'
 })
 
 function isSelf(msg) {
   return profileData.value && msg.senderId === profileData.value.id
+}
+
+function handleKeydown(e) {
+  if (e.key === 'Enter' && e.shiftKey) {
+    // 阻止浏览器默认插入换行
+    e.preventDefault()
+
+    // 手动在光标处插入一个换行符
+    const el = e.target
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const value = inputText.value
+    inputText.value = value.slice(0, start) + '\n' + value.slice(end)
+
+    // 恢复光标位置
+    nextTick(() => {
+      el.selectionStart = el.selectionEnd = start + 1
+    })
+  } else if (e.key === 'Enter') {
+    // Enter 单独按，发送消息
+    e.preventDefault()
+    sendMsg()
+  }
 }
 
 // 优化：批量拉取消息，滚动只在最后一次触发
@@ -159,9 +182,10 @@ function sendMsg() {
       avatar: profileData.value.avatar
     },
     ...(chatType.value === 'private' ? { receiverId: chatId.value } : {}),
-    ...(chatType.value === 'group' ? { groupChat: { name: chatTitle.value, groupId: chatId.value } } : {}),
+    ...(chatType.value === 'group' ? { groupId: chatId.value, groupChat: { name: chatTitle.value, groupId: chatId.value } } : {}),
     content: inputText.value,
     sendTime: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    msgType: 'text',
     id: 'local-' + Date.now()
   }
   if (window.$ws && window.$ws.readyState === 1) {
@@ -169,10 +193,13 @@ function sendMsg() {
     messages.value.push({
       id: msg.id,
       senderId: profileData.value.id,
-      user: { ...profileData.value },
       content: msg.content,
       sendTime: msg.sendTime
     })
+    msg.user.id = chatId.value
+    msg.user.username = chatTitle.value
+    msg.user.avatar = chatAvatar.value
+    console.log('发送消息:', msg)
     homeStore.incrementUnreadByMsg(msg, true)
   } else {
     showErrorToast("消息通道未连接")
@@ -229,7 +256,7 @@ async function onImageChange(e) {
       avatar: profileData.value.avatar
     },
     ...(chatType.value === 'private' ? { receiverId: chatId.value } : {}),
-    ...(chatType.value === 'group' ? { groupChat: { name: chatTitle.value, groupId: chatId.value } } : {}),
+    ...(chatType.value === 'group' ? { groupId: chatId.value, groupChat: { name: chatTitle.value, groupId: chatId.value } } : {}),
     content: localUrl,
     msgType: 'image',
     senderId: profileData.value.id,
@@ -267,9 +294,9 @@ function goToUserProfile() {
     )
     targetUser = item
   }
-  const avatar = targetUser?.avatar
+  const avatar = parseInt(chatId.value) === 1 ? 'https://th.bing.com/th/id/OIP.dwEgyh_FlgXObvZP-iurSQHaHa?rs=1&pid=ImgDetMain' : targetUser?.avatar
   const username = targetUser?.username || chatTitle.value
-  const userId = targetUser?.usrSn || ''
+  const userId = parseInt(chatId.value) === 1 ? 'ailiaoqiu' : targetUser?.usrSn || ''
   const bio = targetUser?.bio || ''
   const onlineStatus = '当前在线'
   router.push({
@@ -281,10 +308,8 @@ function goToUserProfile() {
 
 <style scoped>
 .chat-page {
-  min-height: 100vh;
   background: #f3fcf6;
   overflow: hidden;
-  width: 100vw;
 }
 
 .chat-back {
@@ -341,11 +366,6 @@ function goToUserProfile() {
 }
 
 .fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
   background: #fff;
   border-bottom: 1px solid #eee;
   padding: 42px 0 12px;
@@ -399,10 +419,7 @@ function goToUserProfile() {
 }
 
 .chat-content {
-  position: absolute;
-  top: 102px;
-  left: 0;
-  right: 0;
+ 
   max-width: 100%;
   box-sizing: border-box;
   padding: 12px 0;
@@ -522,6 +539,7 @@ function goToUserProfile() {
 }
 
 .msg-text {
+  white-space: pre-wrap;
   color: #222;
   display: block;
   line-height: 1.7;
@@ -567,11 +585,7 @@ function goToUserProfile() {
 }
 
 .chat-bottom-area {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
+
   background: transparent;
   display: flex;
   flex-direction: column-reverse;
@@ -604,7 +618,8 @@ function goToUserProfile() {
 
 .chat-input {
   flex: 1;
-  height: 38px;
+  min-height: 38px;
+  max-height: 120px;
   border: none;
   margin-right: 8px;
   border-radius: 18px;
@@ -612,6 +627,10 @@ function goToUserProfile() {
   padding: 0 14px;
   font-size: 16px;
   color: #222;
+  resize: none;
+  overflow-y: auto;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .chat-send-btn {
@@ -687,22 +706,22 @@ function goToUserProfile() {
 }
 
 .toast {
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 120px;
-    max-width: 80vw;
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    border-radius: 10px;
-    padding: 14px 24px;
-    text-align: center;
-    font-size: 16px;
-    z-index: 9999;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-    pointer-events: none;
-    animation: toast-fade-in 0.2s;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 120px;
+  max-width: 80vw;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px 24px;
+  text-align: center;
+  font-size: 16px;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  animation: toast-fade-in 0.2s;
 }
 
 .chat-loading {

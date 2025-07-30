@@ -1,6 +1,5 @@
 <template>
   <div class="contacts-page">
-    <!-- header 由父组件统一渲染 -->
     <div class="contacts-search-bar">
       <span class="search-icon"></span>
       <input class="search-input" type="text" v-model="searchText" placeholder="搜索" />
@@ -27,11 +26,13 @@
       </div>
       <div class="contacts-section">
         <div class="section-divider">{{ sectionTitle }}</div>
-        <div class="tabs-content" :style="tabsContentStyle">
+        <div class="tabs-content">
           <template v-if="filteredList.length">
             <div v-for="item in filteredList" :key="item.key" class="contact-row" @click="handleOpen(item)">
-              <img v-if="item.avatar" :src="item.avatar" :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'" />
-              <div v-else :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'">{{ item.name.charAt(0) }}</div>
+              <img v-if="item.avatar" :src="item.avatar"
+                :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'" />
+              <div v-else :class="activeTab === 'group' ? 'group-avatar' : 'contact-avatar'">{{ item.name.charAt(0) }}
+              </div>
               <div class="contact-info">
                 <div class="contact-name">{{ item.name }}</div>
                 <div class="contact-status" v-if="activeTab === 'friend'">当前在线</div>
@@ -65,10 +66,6 @@ const contactListRef = ref(null)
 let lastScrollTop = 0
 const router = useRouter()
 
-const tabsContentStyle = computed(() => ({
-  transform: `translateX(${tabsContentOffset.value}px)`,
-  transition: tabsContentOffset.value === 0 ? 'none' : 'transform 0.25s cubic-bezier(.4,.8,.4,1)'
-}))
 
 const filteredContacts = computed(() =>
   contacts.value
@@ -200,7 +197,8 @@ defineExpose({ saveScroll, restoreScroll })
 <style scoped>
 .contacts-page {
   background: #fff;
-  min-height: 100%;
+  height: 100vh;
+  /* 保证占满可视区域高度 */
   display: flex;
   flex-direction: column;
 }
@@ -301,10 +299,17 @@ defineExpose({ saveScroll, restoreScroll })
   border-bottom: 2px solid #267efb;
 }
 
-.contacts-list {
+.tabs-content {
   flex: 1;
   overflow-y: auto;
+}
+
+.contacts-list {
+  flex: 1;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .func-entry-list {
@@ -424,11 +429,6 @@ defineExpose({ saveScroll, restoreScroll })
   color: #b2b2b2;
   font-size: 16px;
   margin: 18px 0 0 0;
-}
-
-.tabs-content {
-  will-change: transform;
-  transition: transform 0.25s cubic-bezier(.4, .8, .4, 1);
 }
 
 
