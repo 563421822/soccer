@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineExpose, nextTick } from 'vue'
+import { ref, computed, defineExpose, nextTick, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useHomeStore } from '@/store/home'
 import { useRouter } from "vue-router"
@@ -192,15 +192,52 @@ function handleTabSwipe(deltaX) {
 
 defineExpose({ saveScroll, restoreScroll })
 
+// 开发环境下显示 flex 布局信息
+if (process.env.NODE_ENV === 'development') {
+  onMounted(() => {
+    nextTick(() => {
+      const contactsPage = document.querySelector('.contacts-page')
+      const tabsContent = document.querySelector('.tabs-content')
+      const searchBar = document.querySelector('.contacts-search-bar')
+      const tabs = document.querySelector('.contacts-tabs')
+      const contactsList = document.querySelector('.contacts-list')
+      const contactsSection = document.querySelector('.contacts-section')
+      
+      if (contactsPage && tabsContent && searchBar && tabs) {
+        console.log('ContactsPage Flex 布局信息:', {
+          contactsPageHeight: contactsPage.offsetHeight,
+          tabsContentHeight: tabsContent.offsetHeight,
+          searchBarHeight: searchBar.offsetHeight,
+          tabsHeight: tabs.offsetHeight,
+          contactsListHeight: contactsList?.offsetHeight,
+          contactsSectionHeight: contactsSection?.offsetHeight,
+          totalHeight: contactsPage.offsetHeight,
+          availableHeight: window.innerHeight - 72 - 56, // 减去头部和底部
+          tabsContentScrollHeight: tabsContent.scrollHeight,
+          tabsContentClientHeight: tabsContent.clientHeight,
+          canScroll: tabsContent.scrollHeight > tabsContent.clientHeight
+        })
+        
+        // 测试滚动功能
+        if (tabsContent.scrollHeight > tabsContent.clientHeight) {
+          console.log('✅ tabs-content 可以滚动')
+        } else {
+          console.log('❌ tabs-content 无法滚动 - 内容高度不足')
+        }
+      }
+    })
+  })
+}
+
 </script>
 
 <style scoped>
 .contacts-page {
   background: #fff;
-  height: 100vh;
-  /* 保证占满可视区域高度 */
+  height: 100%; /* 改为 100%，适应父容器高度 */
   display: flex;
   flex-direction: column;
+  min-height: 0; /* 重要：允许容器收缩 */
 }
 
 .contacts-header {
@@ -251,6 +288,8 @@ defineExpose({ saveScroll, restoreScroll })
   align-items: center;
   background: #f5f5f7;
   padding: 10px 12px 8px 12px;
+  flex-shrink: 0; /* 不收缩 */
+  flex-basis: auto; /* 基于内容大小 */
 }
 
 .search-icon {
@@ -281,6 +320,7 @@ defineExpose({ saveScroll, restoreScroll })
   margin-left: 16px;
   user-select: none;
   touch-action: pan-x;
+  flex-shrink: 0; /* 不收缩 */
 }
 
 .tab {
@@ -300,21 +340,26 @@ defineExpose({ saveScroll, restoreScroll })
 }
 
 .tabs-content {
-  flex: 1;
+  flex: 1; /* 占据剩余空间 */
   overflow-y: auto;
+  min-height: 0; /* 重要：允许 flex 子项收缩 */
+  max-height: 100%; /* 确保不超过父容器高度 */
+  -webkit-overflow-scrolling: touch; /* iOS 滚动优化 */
 }
 
 .contacts-list {
-  flex: 1;
+  flex: 1; /* 占据剩余空间 */
   background: #fff;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible; /* 改为 visible，允许子元素滚动 */
+  min-height: 0; /* 重要：允许 flex 子项收缩 */
 }
 
 .func-entry-list {
   background: #fff;
   border-bottom: 1px solid #f2f2f2;
+  flex-shrink: 0; /* 不收缩，保持固定高度 */
 }
 
 .func-entry {
@@ -358,6 +403,10 @@ defineExpose({ saveScroll, restoreScroll })
 
 .contacts-section {
   margin-top: 8px;
+  flex: 1; /* 让这个区域占据剩余空间 */
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 重要：允许 flex 子项收缩 */
 }
 
 .section-divider {
@@ -448,5 +497,47 @@ defineExpose({ saveScroll, restoreScroll })
 .slide-up-leave-from {
   transform: translateY(0);
   opacity: 1;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .contacts-page {
+    /* 确保在移动端占满可用空间 */
+    height: 100%;
+  }
+  
+  .tabs-content {
+    /* 移动设备优化 */
+    -webkit-overflow-scrolling: touch; /* iOS 滚动优化 */
+    flex: 1; /* 确保占据剩余空间 */
+  }
+  
+  .contacts-search-bar {
+    padding: 8px 12px 6px 12px;
+    flex-shrink: 0; /* 确保搜索栏不被压缩 */
+  }
+  
+  .contacts-tabs {
+    flex-shrink: 0; /* 确保标签栏不被压缩 */
+  }
+  
+  .contact-row {
+    padding: 10px 16px 8px 16px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 平板设备优化 */
+  .contacts-list {
+    border-radius: 8px;
+    margin: 0 10px;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* 桌面设备优化 */
+  .contacts-list {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
 }
 </style>

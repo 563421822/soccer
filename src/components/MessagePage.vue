@@ -21,7 +21,8 @@
             @touchend="onTouchEnd(item.key, $event)"
             @mousedown="onMouseDown(item.key, $event)"
             @mousemove="onMouseMove(item.key, $event)"
-            @mouseup="onMouseUp(item.key, $event)">
+            @mouseup="onMouseUp(item.key, $event)"
+            :style="{ 'pointer-events': 'auto' }">
             <div class="swipe-content" :style="swipeStyles[item.key]">
               <div class="avatar-wrapper">
                 <input v-if="isEdit" type="checkbox" :checked="selectedIds.includes(item.key)" @change="onSelect(item.key, $event)" class="item-checkbox left" />
@@ -58,6 +59,7 @@ import { defineProps, defineEmits } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useHomeStore } from '@/store/home'
 import { useRouter } from 'vue-router'
+import { onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   isEdit: Boolean,
@@ -75,6 +77,44 @@ const chatListRef = ref(null)
 let lastScrollTop = 0
 const router = useRouter()
 const deletingId = ref(null)
+
+// 开发环境下显示 flex 布局信息
+if (process.env.NODE_ENV === 'development') {
+  onMounted(() => {
+    nextTick(() => {
+      const msgPage = document.querySelector('.msg-page')
+      const chatList = document.querySelector('.chat-list')
+      const searchBar = document.querySelector('.msg-search-bar')
+      const refreshIndicator = document.querySelector('.refresh-indicator')
+      
+      if (msgPage && chatList && searchBar) {
+        console.log('Flex 布局信息:', {
+          msgPageHeight: msgPage.offsetHeight,
+          chatListHeight: chatList.offsetHeight,
+          searchBarHeight: searchBar.offsetHeight,
+          totalHeight: msgPage.offsetHeight,
+          availableHeight: window.innerHeight - 72 - 56, // 减去头部和底部
+          refreshIndicatorHeight: refreshIndicator?.offsetHeight,
+          refreshHeight: refreshHeight.value,
+          isRefreshing: isRefreshing.value
+        })
+      }
+      
+      // 测试点击事件
+      console.log('测试点击事件绑定...')
+      const chatItems = document.querySelectorAll('.chat-item, .private-item')
+      console.log('找到的聊天项数量:', chatItems.length)
+      chatItems.forEach((item, index) => {
+        console.log(`聊天项 ${index}:`, {
+          className: item.className,
+          tagName: item.tagName,
+          pointerEvents: window.getComputedStyle(item).pointerEvents,
+          zIndex: window.getComputedStyle(item).zIndex
+        })
+      })
+    })
+  })
+}
 
 // 新增toast
 const toastMsg = ref('')
@@ -327,22 +367,31 @@ let pulling = false
 let pullTriggered = false
 
 function onPullStart(e) {
-  if (chatListRef.value && chatListRef.value.scrollTop === 0 && !isRefreshing.value) {
-    pulling = true
-    pullStartY = e.touches[0].clientY
-    pullTriggered = false
+  // 检查是否在列表顶部且没有在刷新状态
+  if (chatListRef.value && !isRefreshing.value) {
+    const scrollTop = chatListRef.value.scrollTop
+    if (scrollTop <= 0) {
+      pulling = true
+      pullStartY = e.touches[0].clientY
+      pullTriggered = false
+      // e.preventDefault() // 防止默认滚动行为
+      console.log('下拉刷新开始', { scrollTop, clientY: e.touches[0].clientY })
+    }
   }
 }
 function onPullMove(e) {
   if (!pulling || isRefreshing.value) return
   const deltaY = e.touches[0].clientY - pullStartY
   if (deltaY > 0) {
+    e.preventDefault() // 防止默认滚动行为
     refreshHeight.value = Math.min(deltaY, 80)
     if (refreshHeight.value >= 60) pullTriggered = true
+    console.log('下拉刷新移动', { deltaY, refreshHeight: refreshHeight.value, pullTriggered })
   }
 }
 function onPullEnd(e) {
   if (!pulling) return
+  console.log('下拉刷新结束', { pullTriggered, refreshHeight: refreshHeight.value })
   if (pullTriggered) {
     triggerRefresh()
   } else {
@@ -353,22 +402,31 @@ function onPullEnd(e) {
 }
 
 function onPullMouseDown(e) {
-  if (chatListRef.value && chatListRef.value.scrollTop === 0 && !isRefreshing.value) {
-    pulling = true
-    pullStartY = e.clientY
-    pullTriggered = false
+  // 检查是否在列表顶部且没有在刷新状态
+  if (chatListRef.value && !isRefreshing.value) {
+    const scrollTop = chatListRef.value.scrollTop
+    if (scrollTop <= 0) {
+      pulling = true
+      pullStartY = e.clientY
+      pullTriggered = false
+      e.preventDefault() // 防止默认滚动行为
+      console.log('鼠标下拉刷新开始', { scrollTop, clientY: e.clientY })
+    }
   }
 }
 function onPullMouseMove(e) {
   if (!pulling || isRefreshing.value) return
   const deltaY = e.clientY - pullStartY
   if (deltaY > 0) {
+    e.preventDefault() // 防止默认滚动行为
     refreshHeight.value = Math.min(deltaY, 80)
     if (refreshHeight.value >= 60) pullTriggered = true
+    console.log('鼠标下拉刷新移动', { deltaY, refreshHeight: refreshHeight.value, pullTriggered })
   }
 }
 function onPullMouseUp(e) {
   if (!pulling) return
+  console.log('鼠标下拉刷新结束', { pullTriggered, refreshHeight: refreshHeight.value })
   if (pullTriggered) {
     triggerRefresh()
   } else {
@@ -392,6 +450,19 @@ function triggerRefresh() {
 }
 
 function onItemClick(item, event) {
+  console.log('点击事件触发:', {
+    itemType: item.type,
+    itemId: item.id,
+    itemName: item.name,
+    isEdit: props.isEdit,
+    target: event.target,
+    currentTarget: event.currentTarget,
+    targetClassName: event.target.className,
+    currentTargetClassName: event.currentTarget.className,
+    targetTagName: event.target.tagName,
+    currentTargetTagName: event.currentTarget.tagName
+  })
+  
   if (props.isEdit) return
   const key = item.key
   // 检查是否点击在红色删除区域（按钮本身或其子元素）
@@ -412,6 +483,7 @@ function onItemClick(item, event) {
     swipeStates[key] = false
     return
   }
+  console.log('准备跳转到聊天页面:', { type: item.type, id: item.id, name: item.name })
   handleOpenChat(item.type, item.id, item.name)
 }
 
@@ -422,15 +494,74 @@ function onDeleteBtnClick(item) {
   }
 }
 
+// 测试点击事件是否正常工作
+function testClickEvent() {
+  console.log('测试点击事件...')
+  const chatItems = document.querySelectorAll('.chat-item, .private-item')
+  chatItems.forEach((item, index) => {
+    console.log(`聊天项 ${index} 的样式:`, {
+      pointerEvents: window.getComputedStyle(item).pointerEvents,
+      zIndex: window.getComputedStyle(item).zIndex,
+      position: window.getComputedStyle(item).position,
+      display: window.getComputedStyle(item).display
+    })
+  })
+}
+
+onMounted(() => {
+  testClickEvent()
+  nextTick(() => {
+    const msgPage = document.querySelector('.msg-page')
+    const chatList = document.querySelector('.chat-list')
+    const searchBar = document.querySelector('.msg-search-bar')
+    const refreshIndicator = document.querySelector('.refresh-indicator')
+    
+    if (msgPage && chatList && searchBar) {
+      console.log('Flex 布局信息:', {
+        msgPageHeight: msgPage.offsetHeight,
+        chatListHeight: chatList.offsetHeight,
+        searchBarHeight: searchBar.offsetHeight,
+        totalHeight: msgPage.offsetHeight,
+        availableHeight: window.innerHeight - 72 - 56, // 减去头部和底部
+        refreshIndicatorHeight: refreshIndicator?.offsetHeight,
+        refreshHeight: refreshHeight.value,
+        isRefreshing: isRefreshing.value
+      })
+    }
+    
+    // 测试点击事件
+    console.log('测试点击事件绑定...')
+    const chatItems = document.querySelectorAll('.chat-item, .private-item')
+    console.log('找到的聊天项数量:', chatItems.length)
+    chatItems.forEach((item, index) => {
+      console.log(`聊天项 ${index}:`, {
+        className: item.className,
+        tagName: item.tagName,
+        pointerEvents: window.getComputedStyle(item).pointerEvents,
+        zIndex: window.getComputedStyle(item).zIndex
+      })
+    })
+  })
+})
+
 defineExpose({ saveScroll, restoreScroll })
 </script>
 
 <style scoped>
+.msg-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* 占满父容器高度 */
+  min-height: 0; /* 重要：允许容器收缩 */
+}
+
 .msg-search-bar {
   display: flex;
   align-items: center;
   background: #f5f5f7;
   padding: 10px 12px 8px 12px;
+  flex-shrink: 0; /* 不收缩 */
+  flex-basis: auto; /* 基于内容大小 */
 }
 
 .msg-search-icon {
@@ -452,10 +583,14 @@ defineExpose({ saveScroll, restoreScroll })
 }
 
 .chat-list {
+  flex: 1; /* 占据剩余空间 */
   overflow-y: auto;
   background: #fff;
   position: relative;
-  height: 473px;
+  min-height: 0; /* 重要：允许 flex 子项收缩 */
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto; /* 确保点击事件正常工作 */
 }
 
 .refresh-indicator {
@@ -468,6 +603,9 @@ defineExpose({ saveScroll, restoreScroll })
   background: #f5f5f7;
   color: #267efb;
   font-size: 15px;
+  flex-shrink: 0; /* 防止被压缩 */
+  position: relative; /* 确保定位正确 */
+  z-index: 10; /* 确保在最上层 */
 }
 
 .spinner {
@@ -493,6 +631,9 @@ defineExpose({ saveScroll, restoreScroll })
   cursor: pointer;
   background: #fff;
   position: relative;
+  pointer-events: auto; /* 确保点击事件正常工作 */
+  user-select: none; /* 防止文本选择影响点击 */
+  z-index: 1; /* 确保在最上层 */
 }
 
 .avatar-wrapper {
@@ -619,6 +760,7 @@ defineExpose({ saveScroll, restoreScroll })
   position: relative;
   background: #fff;
   overflow: visible;
+  pointer-events: auto; /* 确保点击事件正常工作 */
 }
 
 .swipe-content {
@@ -627,6 +769,7 @@ defineExpose({ saveScroll, restoreScroll })
   align-items: center;
   transition: transform 0.25s cubic-bezier(.4,0,.2,1); /* 更流畅动画 */
   will-change: transform;
+  pointer-events: auto; /* 确保点击事件正常工作 */
 }
 
 .swipe-delete-btn {
@@ -692,5 +835,49 @@ defineExpose({ saveScroll, restoreScroll })
   z-index: 2000;
   pointer-events: none;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .msg-page {
+    /* 确保在移动端占满可用空间 */
+    height: 100%;
+  }
+  
+  .chat-list {
+    /* 移动设备优化 */
+    -webkit-overflow-scrolling: touch; /* iOS 滚动优化 */
+    flex: 1; /* 确保占据剩余空间 */
+  }
+  
+  .msg-search-bar {
+    padding: 8px 12px 6px 12px;
+    flex-shrink: 0; /* 确保搜索栏不被压缩 */
+  }
+  
+  .chat-item,
+  .private-item {
+    padding: 10px 16px 8px 16px;
+  }
+  
+  /* 优化滑动删除按钮在移动端的显示 */
+  .swipe-delete-btn {
+    min-height: 66px; /* 确保按钮高度足够 */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 平板设备优化 */
+  .chat-list {
+    border-radius: 8px;
+    margin: 0 10px;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* 桌面设备优化 */
+  .chat-list {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
 }
 </style>

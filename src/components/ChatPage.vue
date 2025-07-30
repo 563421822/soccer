@@ -1,57 +1,149 @@
 <template>
   <div class="chat-page">
-    <div class="fixed-header">
-      <span class="header-left" @click="goBack" aria-label="返回">&lt;&nbsp;返回</span>
-      <div class="header-center">
-        <div class="header-title">{{ chatTitle }}</div>
-        <div class="header-status">{{ chatType === 'group' ? '群聊' : '当前在线' }}</div>
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span class="status-left">dtac-T.Better Tog...</span>
+      <span class="status-center">4G</span>
+      <span class="status-right">19:44</span>
+      <div class="status-battery">
+        <div class="battery-icon"></div>
+        <div class="lock-icon"></div>
       </div>
-      <span class="header-right">
-        <img v-if="chatType === 'private'" :src="chatAvatar" class="chat-avatar" alt="用户头像" @click="goToUserProfile" />
-      </span>
     </div>
-    <!-- 消息内容区 -->
-    <div class="chat-content" ref="chatContentRef"
-      :style="{ height: showToolBar ? 'calc(100vh - 259px)' : 'calc(100vh - 164px)' }">
-      <div v-if="loading" class="chat-loading">加载中...</div>
-      <template v-else>
-        <div class="chat-tip">您已添加了 {{ chatTitle }}，现在可以开始聊天了</div>
-        <div class="chat-divider">- 以下是以往消息 -</div>
-        <div v-for="msg in messages" :key="msg.id"
-          :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
-          <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
-            <template v-if="msg.msgType === 'image'">
-              <img :src="msg.content" alt="图片消息" class="msg-img" @load="scrollToBottom" />
-            </template>
-            <template v-else>
-              <span class="msg-text">{{ msg.content }}</span>
-            </template>
-            <div class="msg-time">{{ msg.sendTime }}</div>
+    
+    <!-- 头部导航 -->
+    <div class="header-nav">
+      <div class="nav-left" @click="goBack">
+        <span class="back-arrow">←</span>
+        <span class="back-text">返回</span>
+      </div>
+      <div class="nav-center">
+        <div class="nav-title">主播助理 小小.</div>
+        <div class="nav-status">当前在线</div>
+      </div>
+      <div class="nav-right">
+        <div class="profile-avatar">
+          <div class="avatar-content"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 聊天内容区域 -->
+    <div class="chat-content">
+      <!-- 太空主题背景装饰 -->
+      <div class="space-background">
+        <div class="space-pattern"></div>
+      </div>
+      
+      <!-- 消息内容 -->
+      <div class="messages-container" ref="chatContentRef">
+        <div v-if="loading" class="chat-loading">加载中...</div>
+        <template v-else>
+          <div class="chat-tip">您已添加了 {{ chatTitle }}，现在可以开始聊天了</div>
+          <div class="chat-divider">- 以下是以往消息 -</div>
+          <div v-for="msg in messages" :key="msg.id"
+            :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
+            <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
+              <template v-if="msg.msgType === 'image'">
+                <img :src="msg.content" alt="图片消息" class="msg-img" @load="onImageLoad" />
+              </template>
+              <template v-else>
+                <span class="msg-text">{{ msg.content }}</span>
+              </template>
+              <div class="msg-time">{{ msg.sendTime }}</div>
+            </div>
           </div>
-        </div>
-        <div v-if="!messages.length" class="chat-empty">暂无聊天记录</div>
-      </template>
-    </div>
-    <!-- 输入区（建议拆分为 ChatInputBar 组件） -->
-    <div class="chat-bottom-area" :class="{ expanded: showToolBar }">
-      <transition name="tool-bar-push">
-        <div v-if="showToolBar" class="chat-tool-bar">
-          <div class="tool-item" @click="onSelectImage"><span class="icon-album"></span>相册</div>
-          <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="onImageChange" />
-          <div class="tool-item" @click="onTakePhoto"><span class="icon-camera"></span>拍摄</div>
-          <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none"
-            @change="onImageChange" />
-        </div>
-      </transition>
-      <div class="chat-input-bar">
-        <button class="chat-plus" @click="toggleToolBar" aria-label="更多功能">
-          <span
-            :style="{ transform: showToolBar ? 'rotate(45deg)' : 'none', fontSize: showToolBar ? '28px' : 'inherit' }">＋</span>
-        </button>
-        <textarea v-model="inputText" class="chat-input" placeholder="输入消息..." @keydown="handleKeydown" />
-        <button class="chat-send-btn" @click="sendMsg" aria-label="发送消息">发送</button>
+          <div v-if="!messages.length" class="chat-empty">暂无聊天记录</div>
+        </template>
       </div>
     </div>
+    
+    <!-- 输入区域 -->
+    <div class="input-area">
+      <!-- 工具栏 -->
+      <div v-if="showToolBar" class="tool-bar">
+        <div class="tool-item" @click="onSelectImage">
+          <div class="tool-icon">📷</div>
+          <div class="tool-label">相册</div>
+        </div>
+        <input ref="fileInputRef" type="file" accept="image/*" style="display:none" @change="onImageChange" />
+        <div class="tool-item" @click="onTakePhoto">
+          <div class="tool-icon">📸</div>
+          <div class="tool-label">拍摄</div>
+        </div>
+        <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none" @change="onImageChange" />
+      </div>
+      
+      <div class="input-bar">
+        <button class="input-plus" :class="{ active: showToolBar }" @click="toggleToolBar">+</button>
+        <input class="input-field" v-model="inputText" placeholder="输入消息" @keydown="handleKeydown" />
+        <button class="input-keyboard" :class="{ active: showEmoji }" @click="toggleEmoji">⌨</button>
+        <button class="input-voice">🎤</button>
+      </div>
+      
+      <!-- 表情分类栏 -->
+      <div v-if="showEmoji" class="emoji-categories">
+        <div class="category-item active">
+          <span class="category-icon">🕐</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">😊</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">🐱</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">🍔</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">⚽</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">🚗</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">💡</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">x=</span>
+        </div>
+        <div class="category-item">
+          <span class="category-icon">🏁</span>
+        </div>
+      </div>
+      
+      <!-- 表情键盘 -->
+      <div v-if="showEmoji" class="emoji-keyboard">
+        <div class="emoji-title">笑脸&人物</div>
+        <div class="emoji-grid">
+          <span class="emoji-item" @click="insertEmoji('😀')">😀</span>
+          <span class="emoji-item" @click="insertEmoji('😃')">😃</span>
+          <span class="emoji-item" @click="insertEmoji('😄')">😄</span>
+          <span class="emoji-item" @click="insertEmoji('😁')">😁</span>
+          <span class="emoji-item" @click="insertEmoji('😆')">😆</span>
+          <span class="emoji-item" @click="insertEmoji('😅')">😅</span>
+          <span class="emoji-item" @click="insertEmoji('😂')">😂</span>
+          <span class="emoji-item" @click="insertEmoji('🤣')">🤣</span>
+          <span class="emoji-item" @click="insertEmoji('😊')">😊</span>
+          <span class="emoji-item" @click="insertEmoji('😇')">😇</span>
+          <span class="emoji-item" @click="insertEmoji('🙂')">🙂</span>
+          <span class="emoji-item" @click="insertEmoji('🙃')">🙃</span>
+          <span class="emoji-item" @click="insertEmoji('😉')">😉</span>
+          <span class="emoji-item" @click="insertEmoji('😌')">😌</span>
+          <span class="emoji-item" @click="insertEmoji('😍')">😍</span>
+          <span class="emoji-item" @click="insertEmoji('🥰')">🥰</span>
+          <span class="emoji-item" @click="insertEmoji('😘')">😘</span>
+          <span class="emoji-item" @click="insertEmoji('😗')">😗</span>
+          <span class="emoji-item" @click="insertEmoji('😙')">😙</span>
+          <span class="emoji-item" @click="insertEmoji('😚')">😚</span>
+          <span class="emoji-item" @click="insertEmoji('😋')">😋</span>
+          <span class="emoji-item" @click="insertEmoji('😛')">😛</span>
+          <span class="emoji-item" @click="insertEmoji('😝')">😝</span>
+        </div>
+        <button class="emoji-close" @click="toggleEmoji">✕</button>
+      </div>
+    </div>
+    
     <div v-if="showToast" class="toast">{{ toastMsg }}</div>
   </div>
 </template>
@@ -75,6 +167,7 @@ const loading = ref(true)
 const pageSize = 20
 const inputText = ref('')
 const showToolBar = ref(false)
+const showEmoji = ref(false)
 const fileInputRef = ref(null)
 const cameraInputRef = ref(null)
 
@@ -168,7 +261,13 @@ function goBack() {
 // 优化：滚动到底部
 function scrollToBottom() {
   nextTick(() => {
-    chatContentRef.value && (chatContentRef.value.scrollTop = chatContentRef.value.scrollHeight)
+    if (chatContentRef.value) {
+      // 使用平滑滚动效果
+      chatContentRef.value.scrollTo({
+        top: chatContentRef.value.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
   })
 }
 
@@ -232,6 +331,28 @@ defineExpose({ appendMessage })
 
 function toggleToolBar() {
   showToolBar.value = !showToolBar.value
+  if (showToolBar.value) {
+    showEmoji.value = false // 关闭表情键盘
+  }
+}
+
+function toggleEmoji() {
+  showEmoji.value = !showEmoji.value
+  if (showEmoji.value) {
+    showToolBar.value = false // 关闭工具栏
+  }
+}
+
+function insertEmoji(emoji) {
+  const el = document.querySelector('.input-field')
+  if (el) {
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    inputText.value = inputText.value.slice(0, start) + emoji + inputText.value.slice(end)
+    nextTick(() => {
+      el.selectionStart = el.selectionEnd = start + emoji.length
+    })
+  }
 }
 
 function onSelectImage() {
@@ -264,6 +385,9 @@ async function onImageChange(e) {
     id: tempId
   }
   messages.value.push(msg)
+  // 立即滚动到底部，显示本地图片
+  scrollToBottom()
+  
   const formData = new FormData()
   formData.append('file', file)
   let imageUrl = ''
@@ -284,6 +408,13 @@ async function onImageChange(e) {
   } else {
     showErrorToast("消息通道未连接")
   }
+}
+
+function onImageLoad() {
+  // 图片加载完成后延迟滚动，确保图片完全渲染
+  setTimeout(() => {
+    scrollToBottom()
+  }, 100)
 }
 
 function goToUserProfile() {
@@ -308,372 +439,375 @@ function goToUserProfile() {
 
 <style scoped>
 .chat-page {
-  background: #f3fcf6;
+  background: #f0f8f0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-.chat-back {
-  color: #27c16e;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-right: 8px;
-  z-index: 2;
-}
-
-.chat-header-info {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+/* 状态栏 */
+.status-bar {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
-  height: 100%;
+  padding: 8px 16px 4px;
+  background: #f0f8f0;
+  font-size: 14px;
+  color: #333;
+  height: 24px;
 }
 
-.chat-title,
-.chat-status {
-  pointer-events: auto;
+.status-left {
+  font-size: 12px;
+  color: #666;
 }
 
-.chat-title {
-  font-size: 22px;
-  font-weight: bold;
-  color: #222;
-  margin-bottom: 2px;
+.status-center {
+  font-weight: 500;
 }
 
-.chat-status {
-  font-size: 15px;
-  color: #27c16e;
-  margin-top: 2px;
-  font-weight: 400;
+.status-right {
+  font-weight: 500;
 }
 
-.chat-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  margin-left: auto;
-  object-fit: cover;
-  border: 2px solid #eafaf1;
-  z-index: 2;
+.status-battery {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.fixed-header {
-  background: #fff;
-  border-bottom: 1px solid #eee;
-  padding: 42px 0 12px;
+.battery-icon {
+  width: 20px;
+  height: 10px;
+  border: 1px solid #333;
+  border-radius: 2px;
+  position: relative;
+}
+
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 3px;
+  width: 2px;
+  height: 4px;
+  background: #333;
+  border-radius: 0 1px 1px 0;
+}
+
+.battery-icon::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 12px;
+  height: 6px;
+  background: #ffd700;
+  border-radius: 1px;
+}
+
+.lock-icon {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #333;
+  border-radius: 2px;
+  position: relative;
+}
+
+.lock-icon::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 2px;
+  width: 6px;
+  height: 4px;
+  border: 1px solid #333;
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+}
+
+/* 头部导航 */
+.header-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 102px;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  height: 60px;
 }
 
-.header-left {
-  flex: 1;
-  color: #27c16e;
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #267efb;
   font-size: 16px;
-  text-align: left;
-  padding-left: 15px;
   cursor: pointer;
-  font-weight: 400;
 }
 
-.header-center {
-  flex: 2;
+.back-arrow {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.back-text {
+  font-size: 16px;
+}
+
+.nav-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
 }
 
-.header-title {
-  font-size: 20px;
+.nav-title {
+  font-size: 18px;
   font-weight: bold;
   color: #222;
   line-height: 1.2;
 }
 
-.header-status {
-  font-size: 15px;
+.nav-status {
+  font-size: 14px;
   color: #27c16e;
   margin-top: 2px;
-  font-weight: 400;
 }
 
-.header-right {
-  flex: 1;
+.nav-right {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding-right: 15px;
-  min-width: 38px;
-  height: 38px;
 }
 
-.chat-content {
- 
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 12px 0;
-  overflow-y: auto;
-  flex-direction: column;
-  align-items: stretch;
-  display: flex;
-}
-
-.chat-msg {
-  display: flex;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.chat-msg-left,
-.chat-msg-right {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 8px;
-}
-
-.chat-msg-left {
-  align-items: flex-end;
-}
-
-.chat-msg-left .msg-avatar,
-.chat-msg-right .msg-avatar {
-  margin-right: 10px;
-}
-
-.chat-msg-right {
-  flex-direction: row-reverse;
-  align-items: flex-end;
-}
-
-.msg-avatar {
+.profile-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  object-fit: cover;
-  border: 2px solid #d1e7e4;
-}
-
-.msg-bubble {
-  max-width: calc(100vw - 48px);
-  min-width: 44px;
-  padding: 0 18px;
-  box-shadow: 0 4px 12px rgba(39, 193, 110, 0.15);
-  /* 增加阴影 */
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  font-size: 17px;
-  margin: 4px 4px;
-  word-break: break-word;
-  flex-shrink: 1;
-  box-sizing: border-box;
-  overflow-wrap: break-word;
-  border-radius: 20px;
-  /* 增大圆角 */
-  line-height: 1.6;
-  background-color: #fff;
-  color: #333;
-  display: inline-block;
 }
 
-.msg-bubble-other {
-  background: #ffffff;
-  border-radius: 20px;
-  /* 更大的圆角 */
-  border: 1px solid #eaeaea;
+.avatar-content {
+  width: 32px;
+  height: 32px;
+  background: #27c16e;
+  border-radius: 50%;
+  position: relative;
 }
 
-.msg-bubble-self {
-  background: #d6f5e6;
-  border-radius: 20px;
-  /* 更大的圆角 */
-  border: 1px solid #b2f2d6;
-}
-
-.msg-bubble-other:after {
+.avatar-content::before {
   content: '';
   position: absolute;
-  left: -12px;
-  /* 调整气泡尾巴位置 */
-  top: 16px;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 12px solid #ffffff;
-  /* 提升气泡尾巴的可视效果 */
+  top: 8px;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
 }
 
-.msg-bubble-self:after {
+.avatar-content::after {
   content: '';
   position: absolute;
-  right: -12px;
-  /* 调整气泡尾巴位置 */
-  top: 16px;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 12px solid #d6f5e6;
-  /* 提升气泡尾巴的可视效果 */
+  top: 6px;
+  left: 6px;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 50%;
 }
 
-.msg-img {
-  max-width: 150px;
-  max-height: 180px;
-  border-radius: 14px;
-  display: block;
-  margin: 4px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* 聊天内容区域 */
+.chat-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
 
-.msg-text {
-  white-space: pre-wrap;
-  color: #222;
-  display: block;
-  line-height: 1.7;
-  word-wrap: break-word;
+.space-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f0f8f0;
+  z-index: 1;
 }
 
-.msg-time {
-  font-size: 12px;
-  color: #b2b2b2;
-  text-align: right;
+.space-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    /* 星星 */
+    radial-gradient(circle at 20% 30%, #d0e8d0 2px, transparent 2px),
+    radial-gradient(circle at 80% 20%, #d0e8d0 1px, transparent 1px),
+    radial-gradient(circle at 40% 70%, #d0e8d0 1px, transparent 1px),
+    radial-gradient(circle at 90% 80%, #d0e8d0 1px, transparent 1px),
+    radial-gradient(circle at 10% 90%, #d0e8d0 1px, transparent 1px),
+    radial-gradient(circle at 70% 10%, #d0e8d0 1px, transparent 1px),
+    /* 行星 */
+    radial-gradient(circle at 60% 40%, #c0e0c0 3px, transparent 3px),
+    radial-gradient(circle at 30% 60%, #c0e0c0 2px, transparent 2px),
+    /* 火箭 */
+    linear-gradient(45deg, transparent 40%, #d0e8d0 40%, #d0e8d0 60%, transparent 60%),
+    /* 宇航员头盔 */
+    radial-gradient(circle at 85% 15%, #d0e8d0 4px, transparent 4px),
+    /* 卫星 */
+    radial-gradient(circle at 15% 25%, #d0e8d0 2px, transparent 2px),
+    /* 望远镜 */
+    radial-gradient(circle at 75% 85%, #d0e8d0 3px, transparent 3px),
+    /* 太阳 */
+    radial-gradient(circle at 50% 50%, #f0f8f0 8px, transparent 8px),
+    /* 猫咪宇航员 */
+    radial-gradient(circle at 25% 75%, #d0e8d0 5px, transparent 5px),
+    /* 机器人 */
+    radial-gradient(circle at 80% 45%, #d0e8d0 4px, transparent 4px),
+    /* 外星人 */
+    radial-gradient(circle at 45% 85%, #d0e8d0 3px, transparent 3px),
+    /* 纸飞机 */
+    radial-gradient(circle at 95% 35%, #d0e8d0 2px, transparent 2px),
+    /* 彗星 */
+    radial-gradient(circle at 5% 15%, #d0e8d0 2px, transparent 2px),
+    /* 数字和符号 */
+    radial-gradient(circle at 35% 25%, #d0e8d0 1px, transparent 1px),
+    radial-gradient(circle at 65% 75%, #d0e8d0 1px, transparent 1px),
+    radial-gradient(circle at 55% 95%, #d0e8d0 1px, transparent 1px);
+  background-size: 
+    60px 60px, 80px 80px, 100px 100px, 70px 70px, 90px 90px, 50px 50px,
+    120px 120px, 150px 150px,
+    200px 200px,
+    80px 80px,
+    60px 60px,
+    100px 100px,
+    160px 160px,
+    100px 100px,
+    80px 80px,
+    60px 60px,
+    40px 40px,
+    50px 50px,
+    30px 30px, 30px 30px, 30px 30px;
+  opacity: 0.4;
+}
+
+.messages-container {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 16px;
 }
 
 .chat-tip {
-  color: #b2b2b2;
-  font-size: 15px;
-  margin-top: 18px;
-  padding: 5px;
   text-align: center;
-}
-
-.chat-date {
-  text-align: center;
-  color: #b2b2b2;
+  color: #999;
   font-size: 14px;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
 }
 
 .chat-divider {
   text-align: center;
-  color: #b2b2b2;
-  font-size: 13px;
+  color: #999;
+  font-size: 12px;
+  margin: 20px 0;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+}
+
+.chat-msg {
   margin-bottom: 12px;
-  background: #eafaf1;
-  border-radius: 8px;
-  padding: 2px 0;
+  display: flex;
+}
+
+.chat-msg-left {
+  justify-content: flex-start;
+}
+
+.chat-msg-right {
+  justify-content: flex-end;
+}
+
+.msg-bubble {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.msg-bubble-other {
+  background: #fff;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.msg-bubble-self {
+  background: #27c16e;
+  color: #fff;
+}
+
+.msg-text {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.msg-time {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.msg-bubble-self .msg-time {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.msg-img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  display: block;
 }
 
 .chat-empty {
   text-align: center;
-  color: #b2b2b2;
-  font-size: 15px;
-  margin: 18px 0 0 0;
+  color: #999;
+  font-size: 14px;
+  margin-top: 40px;
 }
 
-.chat-bottom-area {
-
-  background: transparent;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: stretch;
+.chat-loading {
+  text-align: center;
+  color: #27c16e;
+  font-size: 16px;
+  margin-top: 40px;
 }
 
-.chat-input-bar {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
+/* 输入区域 */
+.input-area {
   background: #fff;
   border-top: 1px solid #e0e0e0;
-  z-index: 2;
 }
 
-.chat-plus {
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: #b2b2b2;
-  margin-right: 8px;
-  cursor: pointer;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
+/* 工具栏 */
+.tool-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.chat-input {
-  flex: 1;
-  min-height: 38px;
-  max-height: 120px;
-  border: none;
-  margin-right: 8px;
-  border-radius: 18px;
-  background: #f6f6f6;
-  padding: 0 14px;
-  font-size: 16px;
-  color: #222;
-  resize: none;
-  overflow-y: auto;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.chat-send-btn {
-  background: #27c16e;
-  color: #fff;
-  border: none;
-  border-radius: 18px;
-  height: 38px;
-  cursor: pointer;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(39, 193, 110, 0.08);
-  min-width: 60px;
-  white-space: nowrap;
-  font-size: 16px;
-}
-
-.chat-tool-bar {
-  display: flex;
-  flex-wrap: wrap;
+  padding: 16px;
+  gap: 32px;
   background: #fff;
-  padding: 0;
-  border-top: 1px solid #e0e0e0;
-  max-height: 300px;
-  overflow: hidden;
-  box-shadow: 0 -2px 12px rgba(39, 193, 110, 0.08);
-  transition: max-height 0.2s;
-}
-
-.tool-bar-push-enter-active,
-.tool-bar-push-leave-active {
-  transition: max-height 0.2s ease-out, opacity 0.2s ease-out;
-}
-
-.tool-bar-push-enter-from,
-.tool-bar-push-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-
-.tool-bar-push-enter-to,
-.tool-bar-push-leave-from {
-  max-height: 300px;
-  opacity: 1;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .tool-item {
@@ -681,117 +815,240 @@ function goToUserProfile() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 25%;
-  padding: 16px 0;
-  font-size: 15px;
-  color: #888;
+  cursor: pointer;
+  transition: transform 0.2s;
+  padding: 8px;
+  border-radius: 8px;
 }
 
-.icon-camera {
-  display: block;
-  width: 32px;
-  height: 32px;
-  background: url('/images/icon-camera.svg') no-repeat center/18px 18px;
-  border-radius: 10px;
+.tool-item:hover {
+  transform: scale(1.05);
+  background: #f5f5f5;
+}
+
+.tool-item:active {
+  transform: scale(0.95);
+}
+
+.tool-icon {
+  font-size: 28px;
   margin-bottom: 6px;
 }
 
-.icon-album {
-  display: block;
-  width: 32px;
-  height: 32px;
-  background: url('/images/icon-album.svg') no-repeat center/18px 18px;
-  border-radius: 10px;
-  margin-bottom: 6px;
+.tool-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
 }
 
+.input-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 8px;
+}
+
+.input-plus {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 50%;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.input-plus:hover {
+  background: #e0e0e0;
+  transform: scale(1.05);
+}
+
+.input-plus:active {
+  transform: scale(0.95);
+}
+
+/* 激活状态 */
+.input-plus.active {
+  background: #27c16e;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.input-field {
+  flex: 1;
+  height: 36px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 18px;
+  padding: 0 16px;
+  font-size: 16px;
+  color: #333;
+  outline: none;
+}
+
+.input-field::placeholder {
+  color: #999;
+  font-size: 16px;
+}
+
+.input-keyboard {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.input-keyboard:hover {
+  background: #e0e0e0;
+  transform: scale(1.05);
+}
+
+.input-keyboard:active {
+  transform: scale(0.95);
+}
+
+/* 激活状态 */
+.input-keyboard.active {
+  background: #27c16e;
+  color: #fff;
+}
+
+.input-voice {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 表情分类栏 */
+.emoji-categories {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 16px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.category-item.active {
+  background: #e0f0e0;
+}
+
+.category-icon {
+  font-size: 18px;
+}
+
+/* 表情键盘 */
+.emoji-keyboard {
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  padding: 16px;
+  position: relative;
+  min-height: 200px;
+}
+
+.emoji-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 0 8px;
+}
+
+.emoji-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  user-select: none;
+}
+
+.emoji-item:hover {
+  background: #f0f0f0;
+}
+
+.emoji-item:active {
+  background: #e0e0e0;
+}
+
+.emoji-close {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 50%;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.emoji-close:hover {
+  background: #e0e0e0;
+}
+
+/* Toast */
 .toast {
   position: fixed;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  min-width: 120px;
-  max-width: 80vw;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.8);
   color: #fff;
-  border-radius: 10px;
-  padding: 14px 24px;
-  text-align: center;
+  padding: 12px 24px;
+  border-radius: 8px;
   font-size: 16px;
   z-index: 9999;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   pointer-events: none;
-  animation: toast-fade-in 0.2s;
-}
-
-.chat-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 140px;
-  color: #27c16e;
-  font-size: 16px;
-  font-weight: 500;
-  background: none;
-  gap: 16px;
-}
-
-.revoke-popup {
-  position: absolute;
-  left: 50%;
-  top: -44px;
-  transform: translateX(-50%);
-  z-index: 1000;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(39, 193, 110, 0.18);
-  padding: 0;
-  min-width: 70px;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e0e0e0;
-  /* 动画由transition控制 */
-}
-
-.revoke-btn {
-  color: #e74c3c;
-  font-size: 15px;
-  padding: 8px 18px;
-  cursor: pointer;
-  user-select: none;
-  text-align: center;
-}
-
-.revoke-btn:active {
-  background: #f5f5f5;
-}
-
-/* 撤回弹窗从右到左动画 */
-.revoke-slide-enter-active,
-.revoke-slide-leave-active {
-  transition: opacity 0.18s, transform 0.18s;
-}
-
-.revoke-slide-enter-from {
-  opacity: 0;
-  transform: translateX(60%) scale(0.95);
-}
-
-.revoke-slide-enter-to {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-
-.revoke-slide-leave-from {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-
-.revoke-slide-leave-to {
-  opacity: 0;
-  transform: translateX(60%) scale(0.95);
 }
 </style>
