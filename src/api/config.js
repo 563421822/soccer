@@ -1,7 +1,7 @@
 import axios from 'axios'
 import router from '@/router'
 
-const baseURL = import.meta.env.DEV ? 'http://api.ailiaoqiu.org/api' : 'http://api.ailiaoqiu.org/api'
+const baseURL = import.meta.env.DEV ? 'http://192.168.1.53:8080/api' : 'http://api.ailiaoqiu.org/api'
 
 const api = axios.create({
   baseURL,

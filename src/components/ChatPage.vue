@@ -1,16 +1,5 @@
 <template>
   <div class="chat-page">
-    <!-- 状态栏 -->
-    <div class="status-bar">
-      <span class="status-left">dtac-T.Better Tog...</span>
-      <span class="status-center">4G</span>
-      <span class="status-right">19:44</span>
-      <div class="status-battery">
-        <div class="battery-icon"></div>
-        <div class="lock-icon"></div>
-      </div>
-    </div>
-    
     <!-- 头部导航 -->
     <div class="header-nav">
       <div class="nav-left" @click="goBack">
@@ -18,46 +7,47 @@
         <span class="back-text">返回</span>
       </div>
       <div class="nav-center">
-        <div class="nav-title">主播助理 小小.</div>
+        <div class="nav-title">{{ chatTitle }}</div>
         <div class="nav-status">当前在线</div>
       </div>
       <div class="nav-right">
         <div class="profile-avatar">
-          <div class="avatar-content"></div>
+          <img :src="chatAvatar" alt="头像" class="avatar-content" @click="goToUserProfile" />
         </div>
       </div>
     </div>
-    
+
     <!-- 聊天内容区域 -->
     <div class="chat-content">
       <!-- 太空主题背景装饰 -->
       <div class="space-background">
         <div class="space-pattern"></div>
       </div>
-      
+
       <!-- 消息内容 -->
       <div class="messages-container" ref="chatContentRef">
         <div v-if="loading" class="chat-loading">加载中...</div>
         <template v-else>
           <div class="chat-tip">您已添加了 {{ chatTitle }}，现在可以开始聊天了</div>
           <div class="chat-divider">- 以下是以往消息 -</div>
-          <div v-for="msg in messages" :key="msg.id"
-            :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
-            <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
-              <template v-if="msg.msgType === 'image'">
-                <img :src="msg.content" alt="图片消息" class="msg-img" @load="onImageLoad" />
-              </template>
-              <template v-else>
-                <span class="msg-text">{{ msg.content }}</span>
-              </template>
-              <div class="msg-time">{{ msg.sendTime }}</div>
+          <div v-for="msg in messages" :key="msg.id">
+            <div class="msg-time" :style="{ 'text-align': isSelf(msg) ? 'right' : 'left' }">{{ msg.sendTime.slice(11, 16) }}</div>
+            <div :class="['chat-msg', isSelf(msg) ? 'chat-msg-right' : 'chat-msg-left']">
+              <div :class="['msg-bubble', isSelf(msg) ? 'msg-bubble-self' : 'msg-bubble-other']">
+                <template v-if="msg.msgType === 'image'">
+                  <img :src="msg.content" alt="" class="msg-img" @load="onImageLoad" />
+                </template>
+                <template v-else>
+                  <span class="msg-text">{{ msg.content }}</span>
+                </template>
+              </div>
             </div>
           </div>
           <div v-if="!messages.length" class="chat-empty">暂无聊天记录</div>
         </template>
       </div>
     </div>
-    
+
     <!-- 输入区域 -->
     <div class="input-area">
       <!-- 工具栏 -->
@@ -71,16 +61,17 @@
           <div class="tool-icon">📸</div>
           <div class="tool-label">拍摄</div>
         </div>
-        <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none" @change="onImageChange" />
+        <input ref="cameraInputRef" type="file" accept="image/*" capture="environment" style="display:none"
+          @change="onImageChange" />
       </div>
-      
+
       <div class="input-bar">
         <button class="input-plus" :class="{ active: showToolBar }" @click="toggleToolBar">+</button>
         <input class="input-field" v-model="inputText" placeholder="输入消息" @keydown="handleKeydown" />
-        <button class="input-keyboard" :class="{ active: showEmoji }" @click="toggleEmoji">⌨</button>
-        <button class="input-voice">🎤</button>
+        <!-- <button class="input-keyboard" :class="{ active: showEmoji }" @click="toggleEmoji">⌨</button> -->
+        <button class="input-voice" @click="sendMsg">发送</button>
       </div>
-      
+
       <!-- 表情分类栏 -->
       <div v-if="showEmoji" class="emoji-categories">
         <div class="category-item active">
@@ -111,7 +102,7 @@
           <span class="category-icon">🏁</span>
         </div>
       </div>
-      
+
       <!-- 表情键盘 -->
       <div v-if="showEmoji" class="emoji-keyboard">
         <div class="emoji-title">笑脸&人物</div>
@@ -143,7 +134,7 @@
         <button class="emoji-close" @click="toggleEmoji">✕</button>
       </div>
     </div>
-    
+
     <div v-if="showToast" class="toast">{{ toastMsg }}</div>
   </div>
 </template>
@@ -387,7 +378,7 @@ async function onImageChange(e) {
   messages.value.push(msg)
   // 立即滚动到底部，显示本地图片
   scrollToBottom()
-  
+
   const formData = new FormData()
   formData.append('file', file)
   let imageUrl = ''
@@ -444,87 +435,6 @@ function goToUserProfile() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* 状态栏 */
-.status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 16px 4px;
-  background: #f0f8f0;
-  font-size: 14px;
-  color: #333;
-  height: 24px;
-}
-
-.status-left {
-  font-size: 12px;
-  color: #666;
-}
-
-.status-center {
-  font-weight: 500;
-}
-
-.status-right {
-  font-weight: 500;
-}
-
-.status-battery {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.battery-icon {
-  width: 20px;
-  height: 10px;
-  border: 1px solid #333;
-  border-radius: 2px;
-  position: relative;
-}
-
-.battery-icon::after {
-  content: '';
-  position: absolute;
-  right: -3px;
-  top: 3px;
-  width: 2px;
-  height: 4px;
-  background: #333;
-  border-radius: 0 1px 1px 0;
-}
-
-.battery-icon::before {
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 2px;
-  width: 12px;
-  height: 6px;
-  background: #ffd700;
-  border-radius: 1px;
-}
-
-.lock-icon {
-  width: 12px;
-  height: 12px;
-  border: 1px solid #333;
-  border-radius: 2px;
-  position: relative;
-}
-
-.lock-icon::after {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: 2px;
-  width: 6px;
-  height: 4px;
-  border: 1px solid #333;
-  border-bottom: none;
-  border-radius: 2px 2px 0 0;
 }
 
 /* 头部导航 */
@@ -595,7 +505,6 @@ function goToUserProfile() {
 .avatar-content {
   width: 32px;
   height: 32px;
-  background: #27c16e;
   border-radius: 50%;
   position: relative;
 }
@@ -645,7 +554,7 @@ function goToUserProfile() {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     /* 星星 */
     radial-gradient(circle at 20% 30%, #d0e8d0 2px, transparent 2px),
     radial-gradient(circle at 80% 20%, #d0e8d0 1px, transparent 1px),
@@ -680,7 +589,7 @@ function goToUserProfile() {
     radial-gradient(circle at 35% 25%, #d0e8d0 1px, transparent 1px),
     radial-gradient(circle at 65% 75%, #d0e8d0 1px, transparent 1px),
     radial-gradient(circle at 55% 95%, #d0e8d0 1px, transparent 1px);
-  background-size: 
+  background-size:
     60px 60px, 80px 80px, 100px 100px, 70px 70px, 90px 90px, 50px 50px,
     120px 120px, 150px 150px,
     200px 200px,
@@ -740,8 +649,8 @@ function goToUserProfile() {
 
 .msg-bubble {
   max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 18px;
+  padding: 8px 12px;
+  border-radius: 14px;
   position: relative;
   word-wrap: break-word;
 }
@@ -750,11 +659,13 @@ function goToUserProfile() {
   background: #fff;
   color: #333;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-top-left-radius: 0;
 }
 
 .msg-bubble-self {
   background: #27c16e;
   color: #fff;
+  border-top-right-radius: 0;
 }
 
 .msg-text {
@@ -765,12 +676,6 @@ function goToUserProfile() {
 .msg-time {
   font-size: 12px;
   color: #999;
-  margin-top: 4px;
-  text-align: right;
-}
-
-.msg-bubble-self .msg-time {
-  color: rgba(255, 255, 255, 0.8);
 }
 
 .msg-img {
@@ -927,17 +832,13 @@ function goToUserProfile() {
 }
 
 .input-voice {
-  width: 36px;
-  height: 36px;
+  padding: 6px 14px;
+  font-size: 14px;
   border: none;
-  background: #f5f5f5;
-  border-radius: 50%;
-  font-size: 16px;
-  color: #666;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 20px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* 表情分类栏 */
